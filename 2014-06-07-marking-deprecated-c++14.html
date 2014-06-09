@@ -1,0 +1,89 @@
+---
+layout: article
+title: Marking as deprecated in C++14
+description: The upcoming C++14 standard introduces an attribute for marking declarations as deprecated, useful for discouraging any use of the declared entity.
+tag: C++
+---
+<p>It is common for entities in source code (functions, classes, etc.) to become obsolete or unsafe as the project undergoes development. It's a bad idea to remove those entities without any warning, as it'll break any other code that interfaces with those entities. Instead, it's good practice to mark them as <a href="http://en.wikipedia.org/wiki/Deprecation">deprecated</a> in an attempt to discourage their use.</p>
+<aside>Other existing attributes include <code>noreturn</code>, <code>carries_dependency</code>, and <code>alignas</code> (which has a different syntax).</aside>
+<p>The upcoming C++ release, <a href="http://en.wikipedia.org/wiki/C%2B%2B14">C++14</a>, introduces the <code>deprecated</code> attribute for specifying that an entity is deprecated. The compiler can then emit warnings whenever these entities are being used. In general, attributes are given as a comma-separated list in double square brackets and can be used in various locations. For example, we can deprecate a function by placing the <code>deprecated</code> attribute at the very beginning of the function declaration:</p>
+
+{% highlight cpp %}
+[[deprecated]]
+void foo() {};
+
+int main() {
+	foo(); // we're using a deprecated function
+}
+{% endhighlight %}
+
+<p>Compiled with the latest build of <a href="http://clang.llvm.org/">clang</a>, this gives the following warning:</p>
+
+{% highlight clang %}
+warning: 'foo' is deprecated [-Wdeprecated-declarations]
+        foo();
+        ^
+note: 'foo' has been explicitly marked deprecated here
+void foo() {};
+     ^
+{% endhighlight %}
+
+<p>It is also possible to supply a message that may inform the users of the deprecated entity. This message must be given as a string literal in parentheses:
+
+{% highlight cpp %}
+[[deprecated("use bar instead")]]
+void foo() {};
+{% endhighlight %}
+
+<p>This gives the following warning instead:</p>
+
+{% highlight clang %}
+warning: 'foo' is deprecated: use bar instead [-Wdeprecated-declarations]
+        foo();
+        ^
+note: 'foo' has been explicitly marked deprecated here
+void foo() {};
+     ^
+{% endhighlight %}
+
+<p>The <code>deprecated</code> attribute can also be applied to classes, typedefs, variables, non-static data members, enumerations, and template specializations. Here's a bunch of examples:</p>
+
+{% highlight cpp %}
+// Deprecate a function
+[[deprecated]]
+void foo();
+
+// Deprecate a variable
+[[deprecated]]
+int x;
+
+// Deprecate one declarator in a multi-declarator declaration
+int y [[deprecated]], z;
+
+// Deprecate a function parameter
+int triple([[deprecated]] int x);
+
+// Deprecate a class (or struct)
+class [[deprecated]] my_class {
+	public:
+		// Deprecate a member
+		[[deprecated]] int member;
+};
+
+// Deprecate an enum
+enum [[deprecated]] animals {
+	CAT, DOG, MOUSE
+};
+
+// Deprecate a typedef
+[[deprecated]]
+typedef int type;
+
+// Deprecate a template specialization
+template <typename T> class templ;
+
+template <>
+class [[deprecated]] templ<int> {};
+{% endhighlight %}
+
+<p>The <code>deprecated</code> attribute need only appear on a single declaration of a particular name or entity in order to mark it as deprecated. That is, later redeclaring without the attribute does not “undeprecate” the declaration. Placing the attribute in a header file declaration will ensure that it appears deprecated to all users of this header file.</p>
