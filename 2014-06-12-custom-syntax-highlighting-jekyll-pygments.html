@@ -1,0 +1,75 @@
+---
+layout: article
+title: Custom syntax highlighting with Jekyll and Pygments
+description: Jekyll's built-in syntax highlighting doesn't always come out the way you want it. Learn how to customise the behaviour of the Pygments highlighter in Jekyll.
+tag: Web Development
+---
+<p><a href="http://jekyllrb.com/">Jekyll</a> is a great tool for statically generating websites. Among its many neat features is a convenient template syntax for performing automatic syntax highlighting of code in your pages and posts:</p>
+
+{% highlight liquid %}
+{% raw %}
+<p>Check out this great code I wrote:</p>
+{% highlight cpp %}
+int void(int argc, const char* argv[]) {
+	return 0;
+}
+{% endhighlight %}
+{% endraw %}
+{% endhighlight %}
+
+<p>Jekyll makes use of <a href="http://pygments.org/">Pygments</a>, a Python library for performing syntax highlighting. Pygments takes some code and marks it up according to its syntax. It tends to give only a rough approximation of the true syntax, and it doesn't necessarily account for every feature of a language. This means that if you're as meticulous as I am, you may not be completely happy with the results.</p>
+
+<p>To customise Jekyll's syntax highlighting, you need to install a modified build of Pygments. You'll probably need to know a little Python to do this, but you may be able to get by with just copying existing code. The documentation for <a href="#">Python's regular expressions module</a> may come in useful.</p>
+
+<section>
+	<h1>pygments.rb</h1>
+	<p>Since Jekyll is a Ruby application, it actually uses <a href="https://rubygems.org/gems/pygments.rb">pygments.rb</a>, a Ruby wrapper for Pygments. In fact, pygments.rb contains a copy of the Pygments source within its own repository, so if you want to modify the syntax highlighting behaviour, you need only modify pygments.rb.</p>
+	<p>Grab yourself a copy of the pygments.rb source. If you want to keep a copy of your changes on GitHub, I recommend forking <a href="https://github.com/tmm1/pygments.rb">tmm1/pygments.rb</a> on GitHub and then cloning your fork. If not, you can just clone the pygments.rb repository:</p>
+
+	{% highlight bash %}
+$ git clone pygments.rb
+$ cd pygments.rb
+	{% endhighlight %}
+
+	<p>The Pygments source is stored in this repository in <code>vendor/pygments-main/</code>. The lexers, which you'll want to modify to customize your syntax highlighting, are in <code>vendor/pygments-main/pygments/lexers/</code>. For example, if you want to modify the C++ lexer, you'll find it as the class <code>CppLexer</code> in <code>compiled.py</code> in that directory.</p>
+</section>
+<section>
+	<h1>How Pygments' lexers work</h1>
+	<p>The Pygments developers have <a href="#">a helpful tutorial on writing lexers</a>. In brief, most lexers inherit from <code>RegexLexer</code>, which allows you to specify the syntax highlighting rules with regular expressions. Each lexer has a few properties that give the lexer's name, aliases that can be used to identify the lexer (such as in the <code>{% raw %}{% highlight %}{% endraw %}</code> tag), and associated file extensions and mimetypes.</p>
+	<p>The most important property of a lexer is its <code>tokens</code>. These define the rules for syntax highlighting. The <code>tokens</code> property maps states to a list of rules that can be applied while in that state. When it begins parsing your code, it starts in the <code>'root'</code> state. Each rule is a triple including a regular expression to match, token names to apply to that match, and a new state to transition to. The new state can be omitted to stay in the same state, or <code>'#pop'</code> can be used to return to the previous state.</p>
+	<p>For example, take a look at the <code>'root'</code> state rules from the PHP lexer:</p>
+
+{% highlight python %}
+{% raw %}
+        'root': [
+            (r'<\?(php)?', Comment.Preproc, 'php'),
+            (r'[^<]+', Other),
+            (r'<', Other)
+        ],
+{% endraw %}
+{% endhighlight %}
+
+	<p>In the PHP lexer's root state, if it finds an opening PHP tag (<code>&lt;?php</code> or <code>&lt;?</code>), it marks this code as a <code>Comment.Preproc</code> token and moves into the <code>'php'</code> state. After this, only rules specified under the <code>'php'</code> state will be applied.</p>
+	<p>The tokens that you can use are listed in <code>vendor/pygments-main/pygments/token.py</code>. Each token has a corresponding short name, which is used as the CSS class name for that token. For example, the opening PHP tag will be given the <code>cp</code> class name corresponding to the <code>Comment.Preproc</code> token. If no existing token is suitable for a lexer you're writing, you can simply add one to this list.</p>
+	<p>Pygments will simply apply the appropriate rules, consuming the text that matches the regular expressions at each step, until the entire input has been processed. The result is some marked up code, with <code>&lt;span&gt;</code> elements wrapping each token with corresponding <code>class</code> values. Customizing the existing lexers is usually as simple as adding to or modifying the existing rules.</p>
+</section>
+<section>
+	<h1>Adding a lexer</h1>
+	<p>If you want to highlight a language that is not supported by Pygments, you can simply add your own lexer. It is easiest to use an existing lexer as a starting point. Just inherit from <code>RegexLexer</code>, add the <code>name</code>, <code>aliases</code>, <code>filenames</code>, and <code>mimetypes</code> properties as appropriate, and then write your own <code>tokens</code> rules.</p>
+	<p>You can add your lexer to one of the existing files in <code>vendor/pygments-main/pygments/lexers</code> or add your own file. Be sure to add the name of your lexer class to the file's <code>__all__</code> variable. Once you've done this, your lexer needs to be registered with the library. This registry is stored in <code>_mapping.py</code>, which can be generated by running <code>make mapfiles</code> from within <code>vendor/pygments-main/</code>:</p>
+
+{% highlight bash %}
+pygments.rb$ (cd vendor/pygments-main && make mapfiles)
+{% endhighlight %}
+</section>
+<section>
+	<h1>Installing your custom pygments.rb</h1>
+	<p>For Jekyll to use your customised pygments.rb, you need to build and install it. You can do that easily with the following commands:</p>
+
+{% highlight bash %}
+pygments.rb$ gem build pygments.rb.gemspec
+pygments.rb$ sudo gem install pygments.rb-VERSION.gem
+{% endhighlight %}
+
+	<p>Replace <code>VERSION</code> with the version of pygments.rb that you're building. Just look for the <code>.gem</code> file.</p>
+</section>
