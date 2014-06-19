@@ -78,14 +78,14 @@ void foo(int&);
 	<aside><p>Whether you should have output parameters like this at all is another matter. Consider <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs.</p></aside>
 </section>
 <section>
-	<h1>Passing ownership</h1>
+	<h1>Transferring ownership</h1>
 	<p>When an object is dynamically allocated with <code>new</code>, some code must be responsible for <code>delete</code>ing that object. This code is said to “own” that object in some way. We often want to transfer ownership of an object between parts of our code.</p>
-	<p>A common pattern in C libraries is to have functions that allocate objects and return pointers to those objects:</p>
+	<p>As an example of transferring ownership with raw pointers, a common pattern in C libraries is to have functions that allocate objects and return pointers to those objects:</p>
 {% highlight cpp %}
 Image* createImage();
 void destroyImage(Image*);
 {% endhighlight %}
-	<p>It is then expected that the resulting pointer is later passed to the deallocation function when the object is no longer required. This can easily lead to memory leaks if the user fails to deallocate the object correctly. It is not clear at all from the return type that we now have the responsibility of deallocating the object or how we should do that.</p>
+	<p>It is then expected that the resulting pointer is later passed to the deallocation function when the object is no longer required. This can easily lead to memory leaks if the user fails to deallocate the object correctly. It is not clear at all from the return type that we now have the responsibility of deallocating the object or how we should go about doing so.</p>
 	<p>C++11 introduced a number of smart pointers. These smart pointers represent some particular ownership of a dynamically allocated object. For example, <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr"><code>std::unique_ptr</code></a> represents unique ownership, while <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr"><code>std::shared_ptr</code></a> represents shared ownership. The smart pointers will automatically deallocate the object when all ownership is given up.</p>
 	<aside><p>There is <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3514.pdf">a proposal</a> to introduce a non-owning smart pointer for when ownership should not be transferred. However, references work well in most situations.</p></aside>
 	<p>The previous C-like library interface would now be written as follows:</p>
@@ -98,5 +98,6 @@ std::unique_ptr<Image> createImage();
 	<h1>Conclusion</h1>
 	<p>We have seen that raw pointers really are pretty bad at expressing intent, simply because they're so ambiguous. There is almost always a better alternative type you can use that expresses the values that the object should take more clearly. In fact, good code can often get away with using no raw pointers at all.</p>
 	<p>Note that the use of raw pointers is independent of the use of <code>new</code> for dynamic allocation. We can pass pointers to objects with automatic or static storage, after all. However, <code>new</code> is equally as problematic and can be avoided by using smart pointers and <abbr title="Resource Acquisition Is Initialization">RAII</abbr> appropriately. My <a href="http://stackoverflow.com/a/22146244/150634">answer on Stack Overflow</a> covers this briefly.</p>
+	<p>One use of raw pointers that was not covered is polymorphism. References and smart pointers can also be used for polymorphism, which have the same advantages as described in their relevant sections.</p>
 	<p>For further information, look up more about <a href="http://stackoverflow.com/q/106508/150634">smart pointers</a>, the slides for <a href="http://klmr.me/slides/modern-cpp/">“Don't use f*cking pointers”</a>, and <a href="http://programmers.stackexchange.com/q/56935/80257">“Why are pointers not recommended when coding with C++?”</a>.
 </section>
