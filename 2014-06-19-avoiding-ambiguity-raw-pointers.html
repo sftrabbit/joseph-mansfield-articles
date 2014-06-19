@@ -61,7 +61,8 @@ double complexAlgorithm(int, const Whatsamajig*, const std::string*, const doubl
 {% highlight cpp %}
 double complexAlgorithm(int, boost::optional<Whatsamajig>, boost::optional<std::string>, boost::optional<double>);
 {% endhighlight %}
-	<p>By using <code>boost::optional</code>, it is clear that these arguments are optional. It is expected that <code>boost::optional</code> will emerge as <code>std::optional</code> in the planned C++17 standard.</p>
+	<aside><p>It is expected that <code>boost::optional</code> will emerge as <code>std::optional</code> in the upcoming C++17 standard.</p></aside>
+	<p>By using <a href="http://www.boost.org/doc/libs/1_55_0/libs/optional/doc/html/index.html"><code>boost::optional</code></a>, it is clear that these arguments are optional.</p>
 </section>
 <section>
 	<h1>Reference semantics</h1>
@@ -73,6 +74,7 @@ void foo(int*);
 {% highlight cpp %}
 void foo(int&);
 {% endhighlight %}
+	<aside><p>Whether you should have output parameters like this is another matter. Look at <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs.</p></aside>
 	<p>Here, on the other hand, the intention is clear. C++ has built-in reference types, which neatly express the concept of reference semantics. The passed argument cannot be anything but a valid <code>int</code> object. A reference cannot be null, so we don't even have to worry about that case at all.</p>
 </section>
 <section>
@@ -84,7 +86,8 @@ Image* allocateImage();
 void deallocateImage(Image*);
 {% endhighlight %}
 	<p>It is then expected that the resulting pointer is later passed to a deallocation function when the object is no longer required. This can easily lead to memory leaks if the user fails to deallocate the object correctly. It is not clear at all from the return type that we now have the responsibility of deallocating the object or how we should do that.</p>
-	<p>C++11 introduced a number of smart pointers. These smart pointers represent some particular ownership of a dynamically allocated object. For example, <code>std::unique_ptr</code> represents unique ownership, while <code>std::shared_ptr</code> represents shared ownership. The smart pointers will automatically deallocate the object when all ownership is given up.</p>
+	<aside><p>There is <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3514.pdf">a proposal</a> to introduce a non-owning smart pointer for when ownership should not be transferred.</p></aside>
+	<p>C++11 introduced a number of smart pointers. These smart pointers represent some particular ownership of a dynamically allocated object. For example, <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr"><code>std::unique_ptr</code></a> represents unique ownership, while <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr"><code>std::shared_ptr</code></a> represents shared ownership. The smart pointers will automatically deallocate the object when all ownership is given up.</p>
 	<p>The previous C-like library interface would now be written as follows:</p>
 {% highlight cpp %}
 std::unique_ptr<Image> allocateImage();
