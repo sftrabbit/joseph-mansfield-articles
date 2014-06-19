@@ -1,7 +1,7 @@
 ---
 layout: article
 title: Custom syntax highlighting with Jekyll and Pygments
-description: Jekyll's built-in syntax highlighting doesn't always come out the way you want it. Learn how to customise the behaviour of the Pygments highlighter in Jekyll.
+description: Jekyll's built-in syntax highlighting doesn't always come out the way you want it. Learn how to customize the behavior of the Pygments highlighter in Jekyll.
 tag: Web Development
 ---
 <p><a href="http://jekyllrb.com/">Jekyll</a> is a great tool for statically generating websites. Among its many neat features is a convenient template syntax for performing automatic syntax highlighting of code in your pages and posts:</p>
@@ -19,11 +19,11 @@ int void(int argc, const char* argv[]) {
 
 <p>Jekyll makes use of <a href="http://pygments.org/">Pygments</a>, a Python library for performing syntax highlighting. Pygments takes some code and marks it up according to its syntax. It tends to give only a rough approximation of the true syntax, and it doesn't necessarily account for every feature of a language. This means that if you're as meticulous as I am, you may not be completely happy with the results.</p>
 
-<p>To customise Jekyll's syntax highlighting, you need to install a modified build of Pygments. You'll probably need to know a little Python to do this, but you may be able to get by with just copying existing code. The documentation for <a href="#">Python's regular expressions module</a> may come in useful.</p>
+<p>To customize Jekyll's syntax highlighting, you need to install a modified build of Pygments. You'll probably need to know a little Python to do this, but you may be able to get by with just copying existing code. The documentation for <a href="#">Python's regular expressions module</a> may come in useful.</p>
 
 <section>
 	<h1>pygments.rb</h1>
-	<p>Since Jekyll is a Ruby application, it actually uses <a href="https://rubygems.org/gems/pygments.rb">pygments.rb</a>, a Ruby wrapper for Pygments. In fact, pygments.rb contains a copy of the Pygments source within its own repository, so if you want to modify the syntax highlighting behaviour, you need only modify pygments.rb.</p>
+	<p>Since Jekyll is a Ruby application, it actually uses <a href="https://rubygems.org/gems/pygments.rb">pygments.rb</a>, a Ruby wrapper for Pygments. In fact, pygments.rb contains a copy of the Pygments source within its own repository, so if you want to modify the syntax highlighting behavior, you need only modify pygments.rb.</p>
 	<p>Grab yourself a copy of the pygments.rb source. If you want to keep a copy of your changes on GitHub, I recommend forking <a href="https://github.com/tmm1/pygments.rb">tmm1/pygments.rb</a> on GitHub and then cloning your fork. If not, you can just clone the pygments.rb repository:</p>
 
 	{% highlight bash %}
