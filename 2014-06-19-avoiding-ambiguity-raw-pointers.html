@@ -4,10 +4,10 @@ title: Avoiding the ambiguity of raw pointers
 description: C++ is giving us more ways to write better, safer code. It is now commonly accepted that raw pointers should be avoided, as better alternatives are typically available. We look at the fundamental properties of raw pointers that make them unsuitable for modern code.
 tag: C++
 ---
-<p>I recently posted an answer on Stack Overflow about <a href="http://stackoverflow.com/a/22146244/150634">the uses of dynamic allocation and raw pointers</a> in which I highlighted alternatives that you should prefer. You'll probably see this kind of advice regularly in the context of modern C++ style. These rules exist because there's almost always safer alternatives that are less prone to introducing bugs.</p>
-<p>We will look specifically at the properties of raw pointers (i.e. not smart pointers) that make them such a poor choice in most situations. It is important that types are chosen to be as specific as possible, so that they cannot be used in ways for which they weren't intended. I often think about what types <em>tell me</em>. Just by looking at a type of a variable (perhaps a function parameter), what can I determine about the values that it should take?</p>
-<p>Raw pointers are far too ambiguous. Their possible uses are usually much broader than their intended use. If you see a function with a pointer parameter, it is difficult to know what you should be passing to the function without reading its documentation. Even then, you'd better hope you understood it correctly and are passing the correct things. The more specific we can be with our types, the better, as it ensures that code is readable, safe, and trustworthy.</p>
-<p>Let's consider a pointer type, <code>T*</code>, and the questions it leaves unanswered:</p>
+<p>I recently posted an answer on Stack Overflow about <a href="http://stackoverflow.com/a/22146244/150634">the uses of dynamic allocation and raw pointers</a> in which I highlighted alternatives that you should prefer. You'll probably see this kind of advice regularly in the context of modern C++ style. These rules exist because there's almost always safer alternatives that are less likely to introduce bugs.</p>
+<p>We'll ignore dynamic allocation and look specifically at the properties of raw pointers (i.e. not smart pointers) that make them such a poor choice in most situations. It is important that types are chosen to be as specific as possible, so that they cannot be used in ways for which they weren't intended. I often think about what types <em>tell me</em>. Just by looking at a type of a variable (perhaps a function parameter), what can I determine about the values that it should take?</p>
+<p>Raw pointers are far too ambiguous. It is possible to use them in ways much broader than their intended use, perhaps with terrible consequences. If you see a function with a pointer parameter, it is difficult to know what you should be passing to the function without reading its documentation. Even then, you'd better hope you understood it correctly and are passing the correct things. The more specific we can be with our types the better, as it ensures that our code is safe, trustworthy, and easily understood.</p>
+<p>Let's consider a pointer type, <code>T*</code>, and some questions it leaves unanswered:</p>
 <ul>
 	<li>Should it necessarily point at a valid <code>T</code> object?</li>
 	<li>Can it be a null pointer?</li>
@@ -16,11 +16,11 @@ tag: C++
 	<li>Who is responsible for <code>delete</code>ing the object, if necessary? (Who owns it?)</li>
 	<li>Is the object just one element in an array of <code>T</code>?</li>
 </ul>
-<p>In fact, all this pointer really says is “I store the address of what is <em>hopefully</em> a <code>T</code> object”. It's not nice to have all these mysteries whenever we see a raw pointer. Ideally, our types should be explicit about as many of these things as possible.</p>
+<p>In fact, all this pointer really says is “I store either a null pointer value or the address of what is <em>hopefully</em> a <code>T</code> object”. It's not nice to have all these mysteries whenever we see a raw pointer. Ideally, our types should be explicit about as many of these things as possible.</p>
 <p>We will now consider some common uses of pointers and the ambiguities they present.</p>
 <section>
 	<h1>Arrays</h1>
-	<p>Pointers are commonly used to point at the first element in an array. This is necessary when an array itself cannot be used, such as when the array has dynamic length or as the parameter of a function. The normal array subscripting syntax can be used with the pointer, so it can largely be treated as an array. Using pointers in this way is ambiguous because nothing about the type actually says it's pointing at an array.</p>
+	<p>Pointers are commonly used to point at the first element in an array. This is necessary when an array itself cannot be used, such as when the array has dynamic length or as the parameter of a function. The normal array subscripting syntax can be used with the pointer, so it can largely be treated as an array. Using pointers in this way is ambiguous because nothing about the type actually says it's pointing at an element in an array.</p>
 {% highlight cpp %}
 struct Conversation {
 	// ...
@@ -28,7 +28,7 @@ struct Conversation {
 	// ...
 };
 {% endhighlight %}
-	<p>Here, only the plural name of the data member suggests that it might be pointing at the first element in array. How would I know without looking at how the pointer is initialized?</p>
+	<p>Here, only the plural name of the data member suggests that it might be pointing at the first element in array. How would we know without looking at how the pointer is being assigned?</p>
 	<p>In this case, we are much better off using a standard library container:</p>
 {% highlight cpp %}
 struct Conversation {
