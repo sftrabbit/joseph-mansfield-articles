@@ -1,7 +1,7 @@
 ---
 layout: article
 title: Ambiguous raw pointers
-description: C++ has recently been giving us more and more ways to write better, safer code. It is now commonly accepted that raw pointers should be avoided, as better alternatives are usually available. We look at the fundamental properties of raw pointers that make them unsuitable for modern code.
+description: Recent developments in C++ have given us more ways to write cleaner and safer code. It is now commonly accepted that raw pointers should be avoided, as better alternatives are usually available. We look at the fundamental properties of raw pointers that make them unsuitable for modern code.
 tag: C++
 ---
 <p>I recently posted an answer on Stack Overflow about <a href="http://stackoverflow.com/a/22146244/150634">the uses of dynamic allocation and raw pointers</a> in which I highlighted alternatives that you should prefer. You'll probably see this kind of advice regularly in the context of modern C++ style. These rules exist because there's almost always safer alternatives that are less likely to introduce bugs.</p>
@@ -9,11 +9,12 @@ tag: C++
 <p>Raw pointers are far too ambiguous. It is possible to use them in ways much broader than their intended use, perhaps with terrible consequences. If you see a function with a pointer parameter, it is difficult to know what you should be passing to the function without reading its documentation. Even then, you'd better hope you understood it correctly and are passing the correct things. The more specific we can be with our types the better, as it ensures that our code is safe, trustworthy, and easily understood.</p>
 <p>Let's consider a pointer type, <code>T*</code>, and some questions it leaves unanswered:</p>
 <ul>
-	<li>Should it necessarily point at a valid <code>T</code> object?</li>
+	<li>Must it necessarily point at a valid <code>T</code> object?</li>
 	<li>Can it be a null pointer?</li>
 	<li>Can it point at an invalid object?</li>
 	<li>What is the storage duration of the object?</li>
-	<li>Who is responsible for <code>delete</code>ing the object, if necessary? (Who owns it?)</li>
+	<li>Who has mutable access to the object?</li>
+	<li>Who is responsible for <code>delete</code>ing the object, if necessary?</li>
 	<li>Is the object just one element in an array of <code>T</code>?</li>
 </ul>
 <p>In fact, all this pointer really says is “I store either a null pointer value or the address of what is <em>hopefully</em> a <code>T</code> object”. It's not nice to have all these mysteries whenever we see a raw pointer. Ideally, our types should be explicit about as many of these things as possible.</p>
@@ -75,7 +76,7 @@ void foo(int*);
 void foo(int&);
 {% endhighlight %}
 	<p>Here, on the other hand, the intention is clear. C++ has built-in reference types, which neatly express the concept of reference semantics. The passed argument cannot be anything but a valid <code>int</code> object. A reference cannot be null, so we don't even have to worry about that case at all.</p>
-	<aside><p>Whether you should have output parameters like this at all is another matter. Consider <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs.</p></aside>
+	<p>Whether you should have output parameters like this at all is another matter. Consider <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs. In fact, mutable reference semantics in general can be difficult to reason about because the referenced objects might be modified by multiple parts of your code. Prefer <code>const</code> references and pointers (including smart pointers) when possible.</p>
 </section>
 <section>
 	<h1>Transferring ownership</h1>
@@ -95,7 +96,7 @@ std::unique_ptr<Image> createImage();
 </section>
 <section>
 	<h1>Other uses</h1>
-	<p>Pointers allow polymorphic behavior. That is, calling a virtual member function through a pointer will ensure that the dynamic type of the object will be looked up. This is also supported by references and smart pointers, so the same benefits as above apply here. We should always be able to assume, under the <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov substitution principle</a>, that any of these pointer-like types will happily accept derived types also. There is no additional ambiguity here.</p>
+	<p>Pointers allow polymorphic behavior. That is, calling a virtual member function through a pointer will ensure that the dynamic type of the object will be looked up. This is also supported by references and smart pointers, so the same benefits as above apply here. We should always be able to assume, under the <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov substitution principle</a>, that any of these reference-like types will happily accept derived types also. There is no additional ambiguity here.</p>
 	<p>Sometimes we want to share a pointer to some object without passing any ownership. When raw pointers are used in this way, they're described as observing or non-owning pointers. There is currently no way to express this intent so raw pointers are commonly used and exhibit the same problems we have seen above. There is, however, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3514.pdf">a proposal</a> to introduce a non-owning smart pointer. Despite this, I suggest that interfaces that would like to observe an object should have a reference type instead.</p>
 	<p>One of the few acceptable uses of raw pointers is when you need to make sure a function overload is chosen as expected. When the compiler has a choice between a standard conversion and a conversion to a user-defined type, it will always prefer the standard conversion. This can be problematic:</p>
 {% highlight cpp %}
