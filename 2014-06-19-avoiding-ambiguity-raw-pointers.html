@@ -97,11 +97,20 @@ std::unique_ptr<Image> createImage();
 	<h1>Other uses</h1>
 	<p>Pointers allow polymorphic behavior. That is, calling a virtual member function through a pointer will ensure that the dynamic type of the object will be looked up. This is also supported by references and smart pointers, so the same benefits as above apply here. We should always be able to assume, under the <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov substitution principle</a>, that any of these pointer-like types will happily accept derived types also. There is no additional ambiguity here.</p>
 	<p>Sometimes we want to share a pointer to some object without passing any ownership. When raw pointers are used in this way, they're described as observing or non-owning pointers. There is currently no way to express this intent so raw pointers are commonly used and exhibit the same problems we have seen above. There is, however, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3514.pdf">a proposal</a> to introduce a non-owning smart pointer. Despite this, I suggest that interfaces that would like to observe an object should have a reference type instead.</p>
+	<p>One of the few acceptable uses of raw pointers is when you need to make sure a function overload is chosen as expected. When the compiler has a choice between a standard conversion and a conversion to a user-defined type, it will always prefer the standard conversion. This can be problematic:</p>
+{% highlight cpp %}
+void foo(bool isSomething);
+void foo(std::string str);
+{% endhighlight %}
+	<p>If you attempt to call this function with a string literal, the first overload will be chosen. The best way to get around this is to provide a C-style string overload that fowards to the <code>std::string</code> overload:</p>
+{% highlight cpp %}
+void foo(const char* str);
+{% endhighlight %}
 	<p>If you require some form of reference semantics that is not provided by any existing type (and raw pointers are too broad, as usual), why not implement it yourself? A simple type that clearly expresses your intentions can go a long way towards improving your code.</p>
 </section>
 <section>
 	<h1>Conclusion</h1>
-	<p>We have seen that raw pointers really are pretty bad at expressing intent, simply because they're so ambiguous. There is almost always a better alternative type you can use that expresses the values that the object should take more clearly. In fact, good code can often get away with using no raw pointers at all.</p>
+	<p>We have seen that raw pointers really are pretty bad at expressing intent, simply because they're so ambiguous. There is almost always a better alternative type you can use that expresses the values that the object should take more clearly. Of course, there are always exceptions, but good code can often get away with very minimal use of raw pointers.</p>
 	<p>Note that the use of raw pointers is independent of the use of <code>new</code> for dynamic allocation. We can pass pointers to objects with automatic or static storage, after all. However, <code>new</code> is equally as problematic and can be avoided by using smart pointers and <abbr title="Resource Acquisition Is Initialization">RAII</abbr> appropriately. My <a href="http://stackoverflow.com/a/22146244/150634">answer on Stack Overflow</a> covers this briefly.</p>
 	<p>For further information, look up more about <a href="http://stackoverflow.com/q/106508/150634">smart pointers</a>, the slides for <a href="http://klmr.me/slides/modern-cpp/">“Don't use f*cking pointers”</a>, and <a href="http://programmers.stackexchange.com/q/56935/80257">“Why are pointers not recommended when coding with C++?”</a>.
 </section>
