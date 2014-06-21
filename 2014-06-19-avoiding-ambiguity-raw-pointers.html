@@ -76,7 +76,7 @@ void foo(int*);
 void foo(int&);
 {% endhighlight %}
 	<p>Here, on the other hand, the intention is clear. C++ has built-in reference types, which neatly express the concept of reference semantics. The passed argument cannot be anything but a valid <code>int</code> object. A reference cannot be null, so we don't even have to worry about that case at all.</p>
-	<p>Whether you should have output parameters like this at all is another matter. Consider <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs. In fact, mutable reference semantics in general can be difficult to reason about because the referenced objects might be modified by multiple parts of your code. Prefer <code>const</code> references and pointers (including smart pointers) when possible.</p>
+	<p>Whether you should have output parameters like this at all is another matter. Consider <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs. In fact, mutable reference semantics in general can be difficult to reason about because the referenced objects might be modified by multiple parts of your code. If you need reference semantics, prefer <code>const</code> references and pointers (including smart pointers) when possible. Otherwise, use value semantics.</p>
 </section>
 <section>
 	<h1>Transferring ownership</h1>
