@@ -1,15 +1,14 @@
 ---
 layout: article
 title: Ambiguous raw pointers
-description: Recent developments in C++ have given us more ways to write cleaner and safer code. It is now commonly accepted that raw pointers should be avoided, as better alternatives are usually available. We look at the fundamental properties of raw pointers that make them unsuitable for modern code.
+description: Recent and upcoming changes to the C++ standard are giving us more and more ways to write safer code. A common source of problems is the abundance of raw pointers. It is now well understood that raw pointers can and should be avoided, as better alternatives are usually available. We look at the fundamental properties of raw pointers that make them unsuitable for modern code.
 tag: C++
 ---
-<p>I recently posted an answer on Stack Overflow about <a href="http://stackoverflow.com/a/22146244/150634">the uses of dynamic allocation and raw pointers</a> in which I highlighted alternatives that you should prefer. You'll probably see this kind of advice regularly in the context of modern C++ style. These rules exist because there's almost always safer alternatives that are less likely to introduce bugs.</p>
-<p>We'll ignore dynamic allocation and look specifically at the properties of raw pointers (i.e. not smart pointers) that make them such a poor choice in most situations. It is important that types are chosen to be as specific as possible, so that they cannot be used in ways for which they weren't intended. I often think about what types <em>tell me</em>. Just by looking at a type of a variable (perhaps a function parameter), what can I determine about the values that it should take?</p>
-<p>Raw pointers are far too ambiguous. It is possible to use them in ways much broader than their intended use, perhaps with terrible consequences. If you see a function with a pointer parameter, it is difficult to know what you should be passing to the function without reading its documentation. Even then, you'd better hope you understood it correctly and are passing the correct things. The more specific we can be with our types the better, as it ensures that our code is safe, trustworthy, and easily understood.</p>
+<p>I recently posted <a href="http://stackoverflow.com/a/22146244/150634">an answer on Stack Overflow</a> about the misuses of dynamic allocation and raw pointers (that is, types like <code>int*</code>). You'll probably see this kind of advice regularly in the context of modern C++. There's almost always safer alternatives that make your code much cleaner and are less likely to introduce bugs. While dynamic allocation and raw pointers are often found together, they are orthogonal concepts that each have their own problems. In this article, we'll look only at raw pointers and the properties that make them such a poor choice in most situations.</p>
+<p>It's important to choose types that are as explicit as possible to ensure they cannot be used in ways for which they weren't intended. I often think about what types <em>tell me</em>. Just by looking at the type of a variable (perhaps a function parameter), what can I determine about the values that it should take?</p>
+<p>Raw pointers are far too ambiguous. It is possible to use them in ways much broader than their intended use, often with terrible consequences. If you see a function with a pointer parameter, it is difficult to know what you should be passing to the function without reading its documentation. Even then, you'd better hope the documentation was correct and you are passing the correct things. The more specific we can be with our types the better, as it ensures that our code is safe, trustworthy, and easily understood.</p>
 <p>Let's consider a pointer type, <code>T*</code>, and some questions it leaves unanswered:</p>
 <ul>
-	<li>Must it necessarily point at a valid <code>T</code> object?</li>
 	<li>Can it be a null pointer?</li>
 	<li>Can it point at an invalid object?</li>
 	<li>What is the storage duration of the object?</li>
@@ -18,10 +17,9 @@ tag: C++
 	<li>Is the object just one element in an array of <code>T</code>?</li>
 </ul>
 <p>In fact, all this pointer really says is “I store either a null pointer value or the address of what is <em>hopefully</em> a <code>T</code> object”. It's not nice to have all these mysteries whenever we see a raw pointer. Ideally, our types should be explicit about as many of these things as possible.</p>
-<p>We will now consider some common uses of pointers and the ambiguities they present.</p>
 <section>
 	<h1>Arrays</h1>
-	<p>Pointers are commonly used to point at the first element in an array. This is necessary when an array itself cannot be used, such as when the array has dynamic length or as the parameter of a function. The normal array subscripting syntax can be used with the pointer, so it can largely be treated as an array. Using pointers in this way is ambiguous because nothing about the type actually says it's pointing at an element in an array.</p>
+	<p>Pointers are commonly used to point at the first element in an array. This is necessary when an array type itself cannot be used, such as when the array has dynamic length or as the parameter of a function. The usual array indexing syntax can be applied to the pointer, so it can largely be treated as though it were an array. Using pointers in this way is ambiguous because nothing about the type actually says it's pointing at an element in an array.</p>
 {% highlight cpp %}
 struct Conversation {
 	// ...
@@ -38,36 +36,36 @@ struct Conversation {
 	// ...
 };
 {% endhighlight %}
-	<p>Now we know for certain that <code>messages</code> is some kind of container of strings. This also has the benefit of having a much nicer interface, rather than having to perform dynamic resizing of arrays manually.</p>
+	<p>Now we know for certain that <code>messages</code> is some kind of container of strings. This also has the benefit of having a much nicer interface, rather than having to manually perform dynamic resizing of the array.</p>
 </section>
 <section>
 	<h1>C-style strings</h1>
-	<p>It is common to read the type <code>const char*</code> as “a C-style string”. However, this is only because it is so often treated as a special case. We simply assume that it points at the first character in a null-terminated array of characters, which is quite a strong assumption. There's no reason this pointer couldn't just be pointing at a single <code>char</code>.</p>
+	<p>It is common to read the type <code>char const*</code> as “a C-style string”, but this is only because it is so often treated as a special case. We tend to assume that it points at the first character in a null-terminated array of characters. This is quite a strong assumption, given that there's no reason this pointer couldn't just be pointing at a single <code>char</code>, or even an array of <code>char</code> that is not null-terminated.</p>
 {% highlight cpp %}
-void print(const char*);
+void print(char const*);
 {% endhighlight %}
-	<p>We would probably assume that we should pass a C-style string to this function. However, the type of the argument itself is not enough to know for certain. What would happen if we passed a pointer to a single <code>char</code>? What about a null pointer? Would it break? Why even allow this?</p>
+	<p>We would probably assume that we should pass a C-style string to this function. However, the type of the argument itself is not enough to know for certain. What would happen if we passed a pointer to a single <code>char</code>? What about a null pointer? Would it break? Why even allow this possibility?</p>
 {% highlight cpp %}
-void print(const std::string&);
+void print(std::string const&);
 {% endhighlight %}
 	<p>This is much better because it explicitly asks for a <code>std::string</code> and we know what a <code>std::string</code> represents. It is impossible for us to pass something that is not a string.</p>
 </section>
 <section>
 	<h1>Optional arguments</h1>
-	<p>While default arguments are supported by the language, raw pointers are sometimes used to allow omitting an argument from the middle of the argument list. Passing a null pointer is considered to be omitting an argument.</p>
+	<p>While default arguments are supported by the language, raw pointers are sometimes used to allow arguments from the middle of the argument list to be omitted. A null pointer is treated as an omitted argument.</p>
 {% highlight cpp %}
-double complexAlgorithm(int, const Whatsamajig*, const std::string*, const double*);
+double complexAlgorithm(int, Whatsamajig const*, std::string const*, double const*);
 {% endhighlight %}
-	<p>This function has three arguments that are optional. However, we cannot know this for certain without reading the documentation. Are we sure it won't break if we pass a null pointer?</p>
+	<p>This function has three arguments that are optional. However, we cannot know for certain without reading the documentation. Are we sure it won't break if we pass a null pointer?</p>
 {% highlight cpp %}
 double complexAlgorithm(int, boost::optional<Whatsamajig>, boost::optional<std::string>, boost::optional<double>);
 {% endhighlight %}
-	<p>By using <a href="http://www.boost.org/doc/libs/1_55_0/libs/optional/doc/html/index.html"><code>boost::optional</code></a>, it is clear that these arguments are optional.</p>
+	<p>By using <a href="http://www.boost.org/doc/libs/1_55_0/libs/optional/doc/html/index.html"><code>boost::optional</code></a>, it is clear that these arguments are optional. To omit an argument, we pass <code>boost::none</code>.</p>
 	<aside><p>It is expected that <code>boost::optional</code> will make its way into the upcoming C++17 standard as <code>std::optional</code>.</p></aside>
 </section>
 <section>
 	<h1>Reference semantics</h1>
-	<p>You should generally prefer value semantics, where the value of an object is all that is important, rather than its identity. Sometimes, however, we need to pass a particular instance of an object around. Traditionally, this was done with pointers. In fact, C programmers sometimes refer to pointers as references.</p>
+	<p>In general, value semantics should be preferred, where the value of an object is all that is important, rather than its identity. Sometimes, however, we need to pass a particular instance of an object around. Traditionally, this was achieved with pointers. In fact, C programmers sometimes refer to pointers as references because they provide reference semantics.</p>
 {% highlight cpp %}
 void foo(int*);
 {% endhighlight %}
@@ -75,43 +73,43 @@ void foo(int*);
 {% highlight cpp %}
 void foo(int&);
 {% endhighlight %}
-	<p>Here, on the other hand, the intention is clear. C++ has built-in reference types, which neatly express the concept of reference semantics. The passed argument cannot be anything but a valid <code>int</code> object. A reference cannot be null, so we don't even have to worry about that case at all.</p>
-	<p>Whether you should have output parameters like this at all is another matter. Consider <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs. In fact, mutable reference semantics in general can be difficult to reason about because the referenced objects might be modified by multiple parts of your code. If you need reference semantics, prefer <code>const</code> references and pointers (including smart pointers) when possible. Otherwise, use value semantics.</p>
+	<p>Here, on the other hand, the intention is clear. C++ has built-in reference types, which neatly express the concept of reference semantics. The passed argument cannot be anything but a valid <code>int</code> object. A reference cannot be null, so we don't even have to worry about that.</p>
+	<p>Whether you should have output parameters at all is another matter. Consider <a href="http://en.cppreference.com/w/cpp/utility/tuple"><code>std::tuple</code></a> for returning multiple outputs. In fact, mutable reference semantics in general can be difficult to reason about because the referenced objects might be modified by multiple parts of your code. If you need reference semantics, prefer <code>const</code> references when possible. Otherwise, use value semantics as much as possible.</p>
 </section>
 <section>
 	<h1>Transferring ownership</h1>
-	<p>When an object is dynamically allocated with <code>new</code>, some code must be responsible for <code>delete</code>ing that object. This code is said to “own” that object in some way. We often want to transfer ownership of an object between parts of our code.</p>
+	<p>When an object is dynamically allocated with <code>new</code>, some code must be responsible for <code>delete</code>ing that object. This code is said to “own” that object. We often want to transfer ownership of an object between parts of our code.</p>
 	<p>As an example of transferring ownership with raw pointers, a common pattern in C libraries is to have functions that allocate objects and return pointers to those objects:</p>
 {% highlight cpp %}
 Image* createImage();
 void destroyImage(Image*);
 {% endhighlight %}
 	<p>It is then expected that the resulting pointer is later passed to the deallocation function when the object is no longer required. This can easily lead to memory leaks if the user fails to deallocate the object correctly. It is not clear at all from the return type that we now have the responsibility of deallocating the object or how we should go about doing so.</p>
-	<p>C++11 introduced a number of smart pointers. These smart pointers represent some particular ownership of a dynamically allocated object. For example, <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr"><code>std::unique_ptr</code></a> represents unique ownership, while <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr"><code>std::shared_ptr</code></a> represents shared ownership. The smart pointers will automatically deallocate the object when all ownership is given up.</p>
+	<p>C++11 introduced a number of smart pointers. These smart pointers represent some particular ownership of a dynamically allocated object. For example, <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr"><code>std::unique_ptr</code></a> represents unique ownership, while <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr"><code>std::shared_ptr</code></a> represents shared ownership. These smart pointers will automatically deallocate the object when all ownership is given up.</p>
 	<p>The previous C-like library interface would now be written as follows:</p>
 {% highlight cpp %}
 std::unique_ptr<Image> createImage();
 {% endhighlight %}
-	<p>This now clearly states that we are being given unique ownership of the <code>Image</code>. That is, the library is promising that it does not hold on to the object and so it is okay for you to give up ownership whenever you like. An added bonus is that now you do not need to manually deallocate the <code>Image</code>. This will happen automatically whenever you give up ownership.</p>
+	<p>This now clearly states that we are being given unique ownership of the <code>Image</code>. That is, the library is promising that it does not hold on to the object. An added bonus is that now you do not need to manually deallocate the <code>Image</code>. This will happen automatically whenever you give up ownership.</p>
 </section>
 <section>
 	<h1>Other uses</h1>
-	<p>Pointers allow polymorphic behavior. That is, calling a virtual member function through a pointer will ensure that the dynamic type of the object will be looked up. This is also supported by references and smart pointers, so the same benefits as above apply here. We should always be able to assume, under the <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov substitution principle</a>, that any of these reference-like types will happily accept derived types also. There is no additional ambiguity here.</p>
-	<p>Sometimes we want to share a pointer to some object without passing any ownership. When raw pointers are used in this way, they're described as observing or non-owning pointers. There is currently no way to express this intent so raw pointers are commonly used and exhibit the same problems we have seen above. There is, however, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3514.pdf">a proposal</a> to introduce a non-owning smart pointer. Despite this, I suggest that interfaces that would like to observe an object should have a reference type instead.</p>
+	<p>Pointers allow polymorphic behavior. That is, calling a virtual member function through a pointer will ensure that the dynamic type of the object will be looked up. This is also supported by references and smart pointers, so the same benefits as above apply here. We should always be able to assume, under the <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov substitution principle</a>, that any of these types that provide reference semantics will happily accept derived types also. There is therefore no additional ambiguity here.</p>
+	<p>Sometimes we want to share a pointer to some object without passing any ownership. When raw pointers are used in this way, they're described as observing or non-owning pointers. There is currently no standard way to express this intent so raw pointers are commonly used and exhibit the same problems we have seen above. There is, however, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3514.pdf">a proposal</a> to introduce a non-owning smart pointer. Despite this, I suggest that such observing interfaces should use reference types instead.</p>
 	<p>One of the few acceptable uses of raw pointers is when you need to make sure a function overload is chosen as expected. When the compiler has a choice between a standard conversion and a conversion to a user-defined type, it will always prefer the standard conversion. This can be problematic:</p>
 {% highlight cpp %}
 void foo(bool isSomething);
 void foo(std::string str);
 {% endhighlight %}
-	<p>If you attempt to call this function with a string literal, the first overload will be chosen. The best way to get around this is to provide a C-style string overload that fowards to the <code>std::string</code> overload:</p>
+	<p>If you attempt to call this function with a string literal, the first overload will be chosen. The best way to get around this is to provide a C-style string overload that forwards to the <code>std::string</code> overload:</p>
 {% highlight cpp %}
-void foo(const char* str);
+void foo(char const* str);
 {% endhighlight %}
-	<p>If you require some form of reference semantics that is not provided by any existing type (and raw pointers are too broad, as usual), why not implement it yourself? A simple type that clearly expresses your intentions can go a long way towards improving your code.</p>
+	<p>If you require some reference semantics that are not provided by any existing type (and raw pointers are too broad, as usual), why not implement it yourself? A simple type that clearly expresses your intent can go a long way towards improving your code.</p>
 </section>
 <section>
 	<h1>Conclusion</h1>
-	<p>We have seen that raw pointers really are pretty bad at expressing intent, simply because they're so ambiguous. There is almost always a better alternative type you can use that expresses the values that the object should take more clearly. Of course, there are always exceptions, but good code can often get away with very minimal use of raw pointers.</p>
+	<p>We have seen that raw pointers are pretty bad at expressing intent because they're so ambiguous. There is almost always a better alternative type you can use. Of course, there are always exceptions, but good code can often get away with very minimal use of raw pointers.</p>
 	<p>Note that the use of raw pointers is independent of the use of <code>new</code> for dynamic allocation. We can pass pointers to objects with automatic or static storage, after all. However, <code>new</code> is equally as problematic and can be avoided by using smart pointers and <abbr title="Resource Acquisition Is Initialization">RAII</abbr> appropriately. My <a href="http://stackoverflow.com/a/22146244/150634">answer on Stack Overflow</a> covers this briefly.</p>
 	<p>For further information, look up more about <a href="http://stackoverflow.com/q/106508/150634">smart pointers</a>, the slides for <a href="http://klmr.me/slides/modern-cpp/">“Don't use f*cking pointers”</a>, and <a href="http://programmers.stackexchange.com/q/56935/80257">“Why are pointers not recommended when coding with C++?”</a>.
 </section>
