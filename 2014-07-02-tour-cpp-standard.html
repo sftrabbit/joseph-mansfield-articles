@@ -1,0 +1,93 @@
+---
+layout: article
+title: A tour of the C++ standard
+description: The C++ standard is a pretty huge document that is really worth knowing your way around if you hope to write high quality code. In this article, I'll give a brief tour of the standard to help navigate your way around.
+tag: C++
+---
+<p>Perhaps more than any other language, C++ demands a certain level of intimacy from its programmers. Anybody who feels that they're getting serious with C++ should probably have a copy of the standard at hand. The reasons are twofold: the C++ language and library are fairly complex, so the standard serves as the ultimate reference; and simply compiling a program and running it is often not enough to tell you whether the program is absolutely correct. Familiarizing yourself with the standard will help you know when to question the correctness of your code.</p>
+<section>
+	<h1>Getting the standard</h1>
+	<p>Published C++ standards can be purchased from the <a href="http://www.iso.org/iso/home/store.htm">ISO</a> and <a href="http://webstore.ansi.org/">ANSI</a> stores. The latest publication, colloquially known as C++11, is formally titled <cite>ISO/IEC 14882:2011</cite>.</p>
+	<p>For many, purchasing the standard is both inconvenient and unnecessary. Many papers that come out of the standard committee (known as N-documents), including drafts of the standard, are available for free. The drafts on either side of a publication are usually very similar to it, save for a few small changes. For example, draft <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3337.pdf">N3337</a> is the same as the C++11 standard but with a few typographical corrections. The <a href="http://isocpp.org/">official ISO C++ committee</a> website also maintains a link to the latest draft. The LaTeX source is also available on GitHub in the <a href="https://github.com/cplusplus/draft">cplusplus/draft</a> repository.</p>
+	<p>This tour will be based on the final draft of C++14, <a href="https://github.com/zygoloid/cplusplus/raw/master/papers/N3936.pdf">N3936</a>, which is the latest draft available at the time of writing. Much of this general overview will be the same as for earlier standards.</p>
+</section>
+<section>
+	<h1>References</h1>
+	<p>Sections in the C++ standard are both numbered and labelled. Either can be used for referencing, where §5.2.2 and [expr.call], for example, both refer to the “Function call” section. Labels tend to be easier to recognize and stay consistent as the content of the standard changes, but numbers are easier to locate. Sometimes it's useful to provide both. Paragraphs are also numbered, so §5.2.2/3 is typically used to refer to the 3rd paragraph of that section.</p>
+</section>
+<section>
+	<h1>Language and library</h1>
+	<p>The C++ standard has 30 chapters, which can seem a little daunting at first. It could, however, easily be split into two major parts. Chapters 2&ndash;16 constitute the language itself, defining how a compiled program should behave, while Chapters 17&ndash;30 define all the types and functions made available in the standard library.</p>
+	<p>Chapter 1 is an introduction to the standard, defining a few common terms and introducing some fundamental concepts, such as the C++ object and memory models. Section 1.4 [intro.compliance] describes what it means for an implementation to be compliant. In simple terms, an implementation needs to produce programs that meet all of the language rules defined in Chapters 2&ndash;16. The language rules are generally independent of the standard library, so a compliant implementation need only provide a minimal subset of the library (as described in §17.6.1.3 [compliance]). However, most implementations aim to provide C++ in its entirety.</p>
+<section>
+	<h1>Lexing and preprocessing</h1>
+	<p>Chapter 2 [lex] describes how we take a source file and split the content up into a series of tokens. For example, keywords and literals are all tokens. If you wanted to see a list of keywords or which characters are allowed in an identifier, this is where you'd look.</p>
+	<p>Sections 2.1 [lex.separate] and 2.2 [lex.phases] give an overview of the full process of compiling and linking a source file. Before compilation, the source file is broken down into preprocessing tokens, which include preprocessing directives (like <code>#include</code> and <code>#define</code>). The behavior of these preprocessing directives is described in Chapter 16 [cpp]. I always thought this chapter should go near the beginning but I suppose it's considered a kind of appendix to the language chapters.</p>
+</section>
+<section>
+	<h1>The basics</h1>
+	<p>Chapter 3 [basic] introduces some basic concepts, such as the definition of a name, an object, a variable, and so on. It describes the properties of an object, such as its type, linkage, and storage duration. It also describes how a name is looked up to find its declaration.</p>
+	<p>Chapter 4 [conv] defines the standard conversions between built-in types. For example, if you want to know about implicit conversions between integer types, this is where you want to look. A commonly cited section, due to the mass confusion about how arrays and pointers interact, is §4.2 [conv.array].</p>
+</section>
+<section>
+	<h1>Core language</h1>
+	<p>Chapters 5&ndash;8 are what I think of as the core of the language. Every bit of code you write is made up of these things. They describe expressions, statements, declarations, and declarators respectively.</p>
+	<p>After a source file has been preprocessed, at the very basic level it is simply a sequence of <em>declarations</em>, including variables, namespaces, and classes. Some of those declarations will be function definitions. Function definitions have a function body, which is a sequence of <em>statements</em> within curly braces. Statements are <code>{…}</code> blocks, <code>if</code>, <code>switch</code>, <code>while</code>, <code>for</code>, etc - all those things that you see in the procedural parts of your code. Some declarations are also valid statements, which is how we're able to declare variables and other things within functions.</p>
+	<p>An <em>expression</em> is what performs operations on objects. Expressions are made up of operators being applied to the results of subexpressions. For example <code>*p + 5</code> is an expression which applies the addition operator to the results of the subexpressions <code>*p</code> and <code>5</code>. Expressions are also valid statements, which is why we can write something like <code>x = 5 * y;</code> in a function body. Section 5 [expr] is where you'll find everything about expressions. If you want to know what an operator does, what it returns, whether an expression is an lvalue or rvalue, this is where you look.</p>
+{% highlight cpp %}
+int x; // declaration
+struct y; // declaration
+
+void foo() // declaration (a function definition)
+{
+	if (...) { ... } // statement
+	int z = 5; // a statement which is a declaration
+	x = z; // a statement which is an expression 
+}
+{% endhighlight %}
+	<p>The difference between a declaration (§7) and a declarator (§8) may not be immediately clear - the terminology certainly doesn't help. Each declaration has at least one <em>declarator</em>. The declaration <code>int x;</code> has one declarator, while <code>int x, y;</code> has two. That is, each declarator introduces an entity to your program. You may have seen something like <code>int* p1, p2;</code> and found out that only <code>p1</code> is a pointer, while <code>p2</code> is a plain <code>int</code>. That's because the <code>*</code> character is part of the declarator of <code>p1</code>. If you wanted both to be pointers, you'd need <code>int *p1, *p2;</code>. In fact, in a more complex variable declaration like <code>const short& (*f)(int, char);</code>, only <code>const short</code> belongs to the entire declaration. The rest belongs to the declarator of <code>f</code>.</p>
+</section>
+<section>
+	<h1>Classes</h1>
+	<p>Chapters 9 through 12 cover everything to do with classes. Chapter 9 [class] describes how a class definition is formed. Chapter 10 [class.derived] gives the syntax and rules of inheritance, including how member names are looked up, as this process is complicated by inheritance. Chapter 11 [class.access] describes member access control using <code>private</code>, <code>protected</code>, and <code>public</code> and how to determine whether a particular member is accessible within a particular context. Finally, Chapter 12 [special] describes special member functions, such as constructors, destructors, conversion operators, and so on. The intriguing rules of copy/move elision are described here in §12.8 [class.copy].</p>
+</section>
+<section>
+	<h1>Overload resolution</h1>
+	<p>Chapter 13 [over] gives the rules of overloading. That is, it describes when multiple declarations with the same name are valid together, and how a particular declaration will be chosen when more than one is available.</p>
+</section>
+<section>
+	<h1>Templates</h1>
+	<p>Chapter 14 [temp] is the largest language chapter in the standard because templates are such a complex topic. This chapter defines the template syntax for functions and classes, describes how template arguments bind to template parameters, how name resolution is affected in the context of a template, template specialization, and more.</p>
+</section>
+<section>
+	<h1>Exceptions</h1>
+	<p>Chapter 15 [except] describes the exception handling mechanisms supported by C++. It defines the syntax for throwing and catching exceptions and how the propagation of exceptions is performed.</p>
+</section>
+<section>
+	<h1>The Standard Library</h1>
+	<p>As described earlier, the latter half of the standard (Chapters 17 through 30) are devoted to the standard library. That is, these chapters define every class, function, and template you find in the <code>std</code> namespace. Chapter 17 [library] serves as an introduction and introduces some important requirements that are enforced throughout the library. For example, §17.6.4.2.1 [namespace.std] tells that you cannot add additional declarations to <code>std</code>. The library also defines syntactic and semantic requirements on types, and §17.6.3 [utility.requirements] introduces some common ones, such as what it means to be <code>EqualityComparable</code> or to be an <code>Allocator</code>.</p>
+	<p>The rest of these chapters are all named “… library” and all have pretty much the same structure. They introduce a few related requirements, a synopsis of the contents of a particular header, and then define the operation of types and functions in that header in terms of effects, preconditions, and postconditions.</p>
+	<p>Let's look at §21 [strings], the “Strings library” chapter. It first describes character traits and the requirements for a traits type. It then gives an overview of the <code>&lt;string&gt;</code> header in code form, so you can quickly take a look at all the declarations introduced by this header. The remaining sections in this chapter then define the behavior of these declarations. For example, §21.4 [basic.string] defines the <code>std::basic_string</code> template (of which <code>std::string</code> is a particular instantiation) and it says, for example, that <code>a_string.front()</code> is equivalent to <code>a_string[0]</code>. This is where you would look if you wanted to know how a particular function behaves, including whether or not it might throw.</p>
+	<p>The remaining chapters each cover the various other headers in the standard library:</p>
+	<dl>
+		<dt>Language support</dt><dd>Various headers containing functions and types that may be used implicitly by a program, such as <code>std::initializer_list</code> and the storage allocation functions that are used by <code>new</code> and <code>delete</code> expressions. The language depends on many of these entities, so they are required by all conforming implementations.</dd>
+		<dt>Diagnostics</dt><dd>Entities that provide error handling, exceptions, and assertion functionality.</dd>
+		<dt>General utilities</dt><dd>Entities that are likely to be useful in general, such as smart pointers, <code>std::tuple</code>, <code>std::pair</code>, and the <code>&lt;chrono&gt;</code> time utilities.</dd>
+		<dt>Strings</dt><dd>The <code>&lt;string&gt;</code> header provides <code>std::string</code>, string manipulation functions, and support for using <code>std::string</code> with the I/O streams.</dd>
+		<dt>Localization</dt><dd>The <code>&lt;locale&gt;</code> header with support for localizing numerical and time values.</dd>
+		<dt>Containers</dt><dd>Provides the many container headers, such as <code>&lt;vector&gt;</code>, <code>&lt;array&gt;</code>, <code>&lt;list&gt;</code>, and so on, for storing sequences of elements.</dd>
+		<dt>Iterators</dt><dd>Defines the requirements on different iterator categories and some useful iterator types in <code>&lt;iterator&gt;</code>.</dd>
+		<dt>Algorithms</dt><dd>The <code>&lt;algorithm&gt;</code> header contains various generic algorithms that can be applied to sequences of elements, such as <code>std::for_each</code>, <code>std::find</code>, and <code>std::transform</code>.</dd>
+		<dt>Numerics</dt><dd>Defines the <code>&lt;complex&gt;</code> header for complex numbers, <code>&lt;random&gt;</code> for high quality random number generation, and other useful numeric utilities. Also includes the <code>&lt;cmath&gt;</code> C library header for common math functions.</dd>
+		<dt>Input/output</dt><dd>Provides various I/O stream headers, including the formatted streams (like <code>std::cin</code> and <code>std::cout</code>) and file streams.</dd>
+		<dt>Regular expressions</dt><dd>The <code>&lt;regex&gt;</code> header provides functionality for matching and searching for regular expressions within strings.</dd>
+		<dt>Atomic operations</dt><dd>Types and functions in <code>&lt;atomic&gt;</code> are used to ensure atomic access, particularly useful with the threads library.</dd>
+		<dt>Thread support</dt><dd>Provides the <code>&lt;thread&gt;</code> header for platform-independent thread support for multitasking and concurrent execution.</dd>
+	</ul>
+</section>
+<section>
+	<h1>Finding your way around</h1>
+	<p>You hopefully have a reasonable idea of how the C++ standard is structured now, but it's still going to be quite hard to navigate your way around. It can sometimes to be pretty difficult to find what you're looking for.</p>
+	<p>For example, let's say you want to find out why you can't have a <code>std::vector</code> of reference type elements (<code>T&amp;</code>). You might be inclined to look at §23.3.6 [vector], which defines <code>std::vector</code>, but you won't find the answer there. Perhaps it's a requirement on a particular member function? Or maybe it's a requirement on containers in general? If you follow for long enough, what you'll find is that <code>std::vector</code> meets the requirements of an allocator-aware container, which means that it allocates its contents using an allocator. If you look at the requirements for an allocator (§17.6.3.5 [allocator.requirements]), you'll see that an allocator is only defined for non-const object types. If you then take a look at §3.9 [basic.types], you'll see that object types do not include references. There's your answer. Phew.</p>
+	<p>The standard can sometimes be a bit maze-like. The only advice I have is to get used to it by reading it often. You'll soon figure out the best way to find what you want. If you can't find something, you can always write some example code that exhibits whatever you don't understand and ask on <a href="http://stackoverflow.com/">Stack Overflow</a>.</p>
+</section>
