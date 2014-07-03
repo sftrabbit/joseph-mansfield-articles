@@ -1,7 +1,7 @@
 ---
 layout: article
 title: Ambiguous raw pointers
-description: The abundance of raw pointers can be a major source of problems, making code less safe and more difficult to read. It is now well understood that raw pointers can and should be avoided, as better alternatives are usually available. We look at the fundamental properties of raw pointers that make them unsuitable for modern code and the features of C++ that help us avoid them.
+description: A look at the properties of raw pointers, an abundant source of bugs and confusion for C++ programmers, that make them unsuitable for modern code.
 tag: C++
 ---
 <p>I recently posted <a href="http://stackoverflow.com/a/22146244/150634">an answer on Stack Overflow</a> about the misuses of dynamic allocation and raw pointers (that is, types like <code>int*</code>). You'll probably see this kind of advice regularly in the context of modern C++. There's almost always safer alternatives that make your code much cleaner and are less likely to introduce bugs. While dynamic allocation and raw pointers are often found together, they are orthogonal concepts that each have their own problems. In this article, we'll look only at raw pointers.</p>
