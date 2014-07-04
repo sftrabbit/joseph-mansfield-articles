@@ -5,8 +5,8 @@ description: A look at the properties of raw pointers, an abundant source of bug
 tag: C++
 ---
 <p>I recently posted <a href="http://stackoverflow.com/a/22146244/150634">an answer on Stack Overflow</a> about the misuses of dynamic allocation and raw pointers (that is, types like <code>int*</code>). You'll probably see this kind of advice regularly in the context of modern C++. There's almost always safer alternatives that make your code much cleaner and are less likely to introduce bugs. While dynamic allocation and raw pointers are often found together, they are orthogonal concepts that each have their own problems. In this article, we'll look only at raw pointers.</p>
-<p>It's important to choose types that cannot be used in ways for which they weren't intended. This ensures that problems are detected earlier and that you have clean and expressive interfaces. I often think about what types <em>tell me</em>. Just by looking at the type of a variable (perhaps a function parameter), what can I determine about the values that it should take?</p>
-<p>Raw pointers are far too ambiguous. It is possible to use them in ways much broader than their intended use, often with terrible consequences. If you see a function with a pointer parameter, it is difficult to know what you should be passing to the function without reading its documentation. Even then, you'd better hope the documentation was correct and you are passing the correct things. The more specific we can be with our types the better, as it ensures that our code is safe, trustworthy, and easily understood.</p>
+<p>It's important to choose types that cannot be used in ways for which they weren't intended. This ensures that problems are detected earlier and that your interfaces are clean and expressive. I often think about what types <em>tell me</em>. Just by looking at the type of a variable (perhaps a function parameter), what can I determine about the values that it should take?</p>
+<p>Raw pointers are far too ambiguous. It is possible to use them in ways much broader than their intended use, often with terrible consequences. If you see a function with a pointer parameter, it is difficult to know what you should be passing to the function without reading its documentation. Even then, you'd better hope the documentation was correct and you are passing the correct things. The more specific we can be with our types the better, as it ensures that our code is safe, trustworthy, and easily understood. As with many things in C++, we can often achieve this with little to no run-time cost.</p>
 <p>Let's consider a pointer type, <code>T*</code>, and some questions it leaves unanswered:</p>
 <ul>
 	<li>Can it be a null pointer?</li>
@@ -96,6 +96,7 @@ std::unique_ptr<Image> createImage();
 	<h1>Other uses</h1>
 	<p>Pointers allow polymorphic behavior. That is, calling a virtual member function through a pointer will ensure that the dynamic type of the object will be looked up. This is also supported by references and smart pointers, so the same benefits as above apply here. We should always be able to assume, under the <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov substitution principle</a>, that any of these types that provide reference semantics will happily accept derived types also. There is therefore no additional ambiguity here.</p>
 	<p>Sometimes we want to share a pointer to some object without passing any ownership. When raw pointers are used in this way, they're described as observing or non-owning pointers. There is currently no standard way to express this intent so raw pointers are commonly used and exhibit the same problems we have seen above. There is, however, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3514.pdf">a proposal</a> to introduce a non-owning smart pointer. Despite this, I suggest that such observing interfaces should use reference types instead.</p>
+	<p>If you require some reference semantics that are not provided by any existing type (and raw pointers are too broad, as usual), why not implement it yourself? A simple type that clearly expresses your intent can go a long way towards improving your code.</p>
 	<p>One of the few acceptable uses of raw pointers is when you need to make sure a function overload is chosen as expected. When the compiler has a choice between a standard conversion and a conversion to a user-defined type, it will always prefer the standard conversion. This can be problematic:</p>
 {% highlight cpp %}
 void foo(bool isSomething);
@@ -105,7 +106,7 @@ void foo(std::string str);
 {% highlight cpp %}
 void foo(char const* str);
 {% endhighlight %}
-	<p>If you require some reference semantics that are not provided by any existing type (and raw pointers are too broad, as usual), why not implement it yourself? A simple type that clearly expresses your intent can go a long way towards improving your code.</p>
+	<p>Additionally, if you are dealing with low-level memory manipulation, then you probably do want to use raw pointers. In this case, they genuinely represent your intentions accurately.</p> 
 </section>
 <section>
 	<h1>Conclusion</h1>
