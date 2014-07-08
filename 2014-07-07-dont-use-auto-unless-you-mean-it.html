@@ -57,7 +57,15 @@ for (contact_details contact : contacts) {
 }
 {% endhighlight %}
 
-<p>In this example, I'm calling <code>contact_details::get_email_address</code>, which means that <code>contact</code> has to be a <code>contact_details</code> object. It's useful to be able to see this at a glance, especially if the code in which the object is used is more complex. If I were writing a generic loop that could iterate over any kind of object and process it, <code>auto</code> would be fine:</p>
+<p>In this example, I'm calling <code>contact_details::get_email_address</code>, which means that <code>contact</code> has to be a <code>contact_details</code> object. This has a number of advantages over using <code>auto</code>:</p>
+<ol>
+	<li>Finding the type of <code>contact</code> only requires looking at its declaration and not at the type of <code>contacts</code>.</li>
+	<li>If the container type changes, you'll get an error directly from the <code>for</code> loop declaration, rather than deeper in your code.</li>
+	<li>It expresses your intent to use <code>contact</code> in ways only a <code>contact_details</code> object could be used.</li>
+	<li>It's consistent with all other declarations including parameters of templates.</li>
+</ol>
+<p>I'd say it's also better than writing <code>decltype(v)::value_type</code> because that ties the declaration to the initialiser by assuming that it has a <code>value_type</code> typedef. Really, <code>contact</code> doesn't need to care.</p>
+<p>If I were writing a generic loop that could iterate over any kind of object and process it, <code>auto</code> would be fine:</p>
 
 {% highlight cpp %}
 for (auto element : range) {
