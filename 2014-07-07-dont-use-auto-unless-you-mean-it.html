@@ -51,12 +51,12 @@ InputIterator best_candidate = std::max_element(employees, LessSuitableForTask{t
 <p>This implies that any use of <code>best_candidate</code> only requires that it meets the requirements of an <code>InputIterator</code>. We are hiding away the actual type of the iterator, but not hiding the information that is actually important. On the other hand, <code>auto</code> hides everything. You can hopefully now see that the convention I have proposed unifies the declarations of both function arguments and variables:</p>
 
 {% highlight cpp %}
-some_type name = /* must be some_type */;
+some_type name = /* must be convertible to some_type */;
 SomeConcept name = /* must meet SomeConcept requirements */;
 MoreGeneralConcept name = /* must meet MoreGeneralConcept requirements */;
 auto name = /* can be anything */;
 
-void foo(some_type); // must take some_type
+void foo(some_type); // must take something convertible to some_type
 void foo(SomeConcept); // must take something that meets SomeConcept requirements
 void foo(MoreGeneralConcept); // must take something that meets MoreGeneralConcept requirements
 void foo(auto); // can take anything
