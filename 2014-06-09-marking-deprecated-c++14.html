@@ -25,7 +25,7 @@ warning: 'foo' is deprecated [-Wdeprecated-declarations]
         foo();
         ^
 note: 'foo' has been explicitly marked deprecated here
-void foo() {};
+void foo() {}
      ^
 {% endhighlight %}
 
@@ -33,7 +33,7 @@ void foo() {};
 
 {% highlight cpp %}
 [[deprecated("use bar instead")]]
-void foo() {};
+void foo() {}
 {% endhighlight %}
 
 <p>This gives the following warning instead:</p>
@@ -43,7 +43,7 @@ warning: 'foo' is deprecated: use bar instead [-Wdeprecated-declarations]
         foo();
         ^
 note: 'foo' has been explicitly marked deprecated here
-void foo() {};
+void foo() {}
      ^
 {% endhighlight %}
 
