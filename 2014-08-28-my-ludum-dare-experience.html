@@ -4,7 +4,7 @@ title: My Ludum Dare Experience
 description: "A look back at my first experience with Ludum Dare, a 48-hour accelerated game development competition."
 tag: game development
 ---
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/intro.png"></figure>
+<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/intro.png"></figure>
 <p>Last weekend, I took part in <a href="ludumdare.com/compo/">Ludum Dare</a> for the first time. Ludum Dare is a game development competition in which you have to make a game in 48 hours. Before the competition, everybody votes on a theme, and this time around the most popular theme was “Connected Worlds.” By the end, I had successfully managed to make a little game called <a href="http://www.ludumdare.com/compo/ludum-dare-30/?action=preview&uid=26559">Connected Worlds Training Facility</a> which you can <a href="http://josephmansfield.uk/ConnectedWorldsTrainingFacility/">play online</a>.</p>
 <p>Taking part had been on my mind for some years. I first learned to code with Game Maker, about 12 years ago, and have been interested in game development ever since. I read a lot of game development books, regularly browsed forums like <a href="http://www.reddit.com/r/gamedev">/r/gamedev</a> and the <a href="http://gamedev.stackexchange.com/">Stack Exchange site</a>, learned a fair few libraries and tools, and <em>started</em> making some of the ideas that were dancing in the back of my head &mdash; but never got far.</p>
 <p>I watched many Ludum Dares come and go and always told myself that I'd take part next time. I was also pretty scared that once I left university and started working, I'd never have the time for that kind of thing. Then I left university, got myself a job, and three weeks later took part in Ludum Dare. It's funny how that happens.</p>
@@ -19,29 +19,29 @@ tag: game development
 	<p>First thing on Saturday, I found out the theme &mdash; Connected Worlds &mdash; and started thinking about ideas. I had previously had ideas about a co-op game involving two players in two separate environments that could interact with each other. This became the basis for my Ludum Dare game - the core mechanic would involve switching between two worlds and using connections between those worlds to solve puzzles.</p>
 	<p>I deviated from my plan immediately, of course, and decided I'd start with pixelated rendering. Why not? I knew how to do this in OpenGL; it was just a matter of working out how to do it with the libGDX <abbr title="Application Programming Interface">API</a>. An hour after getting started, I was rendering my game to a quarter-size Renderbuffer Object and then rendering that Renderbuffer Object to the full-size Default Framebuffer.</p>
 	<p>I then got to work on the platforming mechanics. This meant getting some simple sprites drawn to the screen, modelling the character and environment in Box2D (which I had also never used before), and getting the character to respond to input. Two hours later, I had a jumping man:</p>
-	<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/jump.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/jump.gif"></figure>
 	<p>The green and pink boxes are very helpfully rendered by libGDX's debug renderer for Box2D. With a couple of lines of code, it renders the outlines of all your physical bodies.</p>
 	<p>Half an hour later, I had a bit more movement, but the character was able to jump infinitely and slide around like an ice skater:</p>
-	<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/ice-skating.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/ice-skating.gif"></figure>
 	<p>Then came the biggest time waste of the entire weekend; I spent 5 hours trying to get the movement feeling natural. The good news is that it worked. The bad news is that I lost 5 hours. Unfortunately, it took so long because I was trying to figure out Box2D at the same time. It turns out there is an internal limit placed on the velocity of objects which I was hitting quickly because I was using pixels as my units. The recommendation is to scale everything to something like “meters”, which I really should have listened to in the first place. Lesson learned. I finally had movement I liked (with variable jump height!):</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/movement.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/movement.gif"></figure>
 	<p>I then decided to make a sprite for my character. The first idea that came to my head was a little dude in a massive hazmat suit, so I just stuck with it. This is what I drew up in <a href="http://www.gimp.org/">Gimp</a>:</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/character.png"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/character.png"></figure>
 	<p>Next, I animated the sprite (4 frames of animation), rendered it, and added smooth camera movement. Smooth cameras are important to me, okay!</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/smooth-camera.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/smooth-camera.gif"></figure>
 	<p>I realised then that I still didn't have any actual environment. I decided to keep the physical model entirely separate from the actual environment; I would just ensure that the obstacles match up with where the walls and objects in the environment are supposed to be. To render the environment, I used libGDX's fantastic tile map functionality. I created a simple tile map (containing only blue circles) with <a href="http://www.mapeditor.org/">Tiled</a> and, with 4 lines of code, rendered it to the screen:</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/tilemap.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/tilemap.gif"></figure>
 	<p>This was the end of the first day. My core mechanic &mdash; switching between worlds &mdash; was nowhere to be seen. At least I had nice player and camera movement, right?</p>
 	<p>The next morning, I made a more realistic environment and added a few more tiles to the tile map:</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/better-tilemap.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/better-tilemap.gif"></figure>
 	<p>I obviously needed to get on with the core mechanic, so I added buttons which would provide the interaction between one world and the other. As usual, I spent a bit of time trying to improve the feel of the buttons. There's a Box2D body that moves down when you stand on it. This body then springs up after a short delay.</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/button.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/button.gif"></figure>
 	<p>Of course, what is a platformer without moving platforms and doors? The plan was to connect the buttons in one world to the doors in the other. I also had ideas of buttons that would make platforms start and stop moving but never got round to that.</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/doors-and-platforms.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/doors-and-platforms.gif"></figure>
 	<p>Six hours into the second day, I went back into time-waste mode and decided to add some post-processing graphical effects. The intention was that the world switch would look like a change between two CCTV feeds, so I wanted to make the game look like it was being recorded:</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/cctv.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/cctv.gif"></figure>
 	<p>I then finally added the world-switching mechanic! To do this, I had to break apart quite a bit of my code. I extracted all of the per-world content (which is pretty much everything you see) into a class that is responsible for generating the level. This level class is given two world data containers, which it populates with the per-world content. At the time, I just had both worlds exactly the same except for the player objects:</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/world-switch.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/world-switch.gif"></figure>
 	<p>If you notice, the moving platform starts back at the bottom when the world is switched. I didn't like the idea that one world was paused while the other was running, so I changed it so that both worlds' physics were being updated at all times.</p>
 	<p>To make the second player sprite, I cheated a little and just colourized the hazmat suit in Gimp. For the static transition effect, I have a sprite map with 6 noise sprites within it, and I switch between them randomly, tiling each one across the entire screen for a short duration.</p>
 	<p>I then went into overdrive mode. I had 8 hours left of the competition and had only just gotten the core mechanic working. For that reason, I stopped making videos of my progress, but here's a quick summary of what happened:</p>
@@ -55,9 +55,9 @@ tag: game development
 		<li>The finishing touch was to add a couple of pseudo-levels that just wrote some intro story text and said “To be continued” at the end.</li>
 	</ol>
 	<p>The final sprite sheets looked like this:</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/tilesets.png"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/tilesets.png"></figure>
 	<p>And the final submission of the game looked like this:</p>
-<figure><img src="{{ site.url }}/images/ludum-dare-2014-08/final-game.gif"></figure>
+	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/final-game.gif"></figure>
 	<p>Quite a lot different from before, wouldn't you say? I was pretty happy with the result, but disappointed that I didn't have chance to add more levels and better sound effects and music. I had been completely unable to stick to my planned timeline; who'd have thought it?</p>
 </section>
 <section>
