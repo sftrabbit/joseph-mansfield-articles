@@ -12,7 +12,7 @@ tag: game development
 	<h1>Preparation</h1>
 	<p>I only found out it was happening a couple of days before it started, so I didn't have much time to prepare. I quickly decided that I was going to do it in <a href="http://en.wikipedia.org/wiki/Java_(programming_language)">Java</a>, although <a href="http://en.wikipedia.org/wiki/C%2B%2B">C++</a> is by far the language I know best. I just knew I would be faster with Java, particularly thanks to <a href="http://www.jetbrains.com/idea/">IntelliJ IDEA</a> being a pretty great <abbr title="Integrated Development Environment">IDE</abbr>. I've written plenty of Java in the past, most recently for Android applications, so I'm comfortable writing it without having to think about the syntax. I had also been meaning to try out <a href="http://libgdx.badlogicgames.com/">libGDX</a>, a cross-platform Java game framework, for a while.</p>
 	<p>One thing's for certain: 48 hours is not a very long time, so I immediately planned out in my head how I wanted the weekend to go. I was thinking about one day for the core mechanics, then a second day for adding content and improving the graphics and audio.</p>
-	<p>The night before it began, I spent 3 hours or so skimming through the <a href="https://github.com/libgdx/libgdx/wiki">libgdx Wiki</a> so I had a general idea of what features were available and how I might use them. I knew I wasn't very prepared, but I was going to do it anyway.</p>
+	<p>The night before it began, I spent 3 hours or so skimming through the <a href="https://github.com/libgdx/libgdx/wiki">libGDX Wiki</a> so I had a general idea of what features were available and how I might use them. I knew I wasn't very prepared, but I was going to do it anyway.</p>
 </section>
 <section>
 	<h1>How it happened</h1>
@@ -29,7 +29,7 @@ tag: game development
 	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/character.png" alt="A small pixel-art man in a large yellow hazmat suit and a gas mask."></figure>
 	<p>Next, I animated the sprite (4 frames of animation), rendered it, and added smooth camera movement. Smooth cameras are important to me, okay!</p>
 	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/smooth-camera.gif" alt="The character jumps between platforms and the game camera follows smoothly."></figure>
-	<p>I realised then that I still didn't have any actual environment. I decided to keep the physical model entirely separate from the actual environment; I would just ensure that the obstacles match up with where the walls and objects in the environment are supposed to be. To render the environment, I used libGDX's fantastic tile map functionality. I created a simple tile map (containing only blue circles) with <a href="http://www.mapeditor.org/">Tiled</a> and, with 4 lines of code, rendered it to the screen:</p>
+	<p>I realized then that I still didn't have any actual environment. I decided to keep the physical model entirely separate from the actual environment; I would just ensure that the obstacles match up with where the walls and objects in the environment are supposed to be. To render the environment, I used libGDX's fantastic tile map functionality. I created a simple tile map (containing only blue circles) with <a href="http://www.mapeditor.org/">Tiled</a> and, with 4 lines of code, rendered it to the screen:</p>
 	<figure><img src="{{ site.media_url }}/images/ludum-dare-2014-08/tilemap.gif" alt="The character continues to move around, while various blue circles are rendered around the environment."></figure>
 	<p>This was the end of the first day. My core mechanic &mdash; switching between worlds &mdash; was nowhere to be seen. At least I had nice player and camera movement, right?</p>
 	<p>The next morning, I made a more realistic environment and added a few more tiles to the tile map:</p>
@@ -66,7 +66,7 @@ tag: game development
 	<ul>
 		<li><b>Being a confident programmer is very important.</b> The more practice you get, the more confident you'll be. The more confident you are, the more you can focus on making your game.</li>
 		<li><b>Clean code is not a priority when trying to work quickly.</b> The code I wrote is <em>hideous</em>, and I would normally feel sick about it, but for this I don't care.</li>
-		<li><b>Use existing libraries whenever possible.</b> I tend to find problems with many libaries I use (libGDX is no exception), but they get the job done. There's not enough time to do everything from scratch.</li>
+		<li><b>Use existing libraries whenever possible.</b> I tend to find problems with many libraries I use (libGDX is no exception), but they get the job done. There's not enough time to do everything from scratch.</li>
 		<li><b>A good IDE makes a big difference.</b> I can't imagine the pace I'd have been going at if I'd been using vim and bash like usual. IntelliJ IDEA was a huge boon.</li>
 		<li><b>The little details matter.</b> The details can do a huge amount to make a creative work look and feel better. There are still a few tiny issues with the game that bug me, however.</li>
 		<li><b>The little details waste time.</b> On the other hand, my attention to detail wasted a lot of time. A good balance is important.</li>
