@@ -1,0 +1,87 @@
+---
+layout: article
+title: C++ sequenced-before graphs
+description: "A visual method for identifying and understanding undefined behavior in expressions."
+tag: C++
+---
+{% highlight cpp %}
+i = i++
+{% endhighlight %}
+
+<p>This expression, and many like it, demonstrate the sequencing rules of C++ and how they can cause your program to behave in ways you might not expect. What should the result of this expression be given some initial value for <code>i</code>? Questions like this are extremely frequent on <a href="http://stackoverflow.com/questions/tagged/c++">Stack Overflow</a>. In this case, the answer is that this code is completely undefined &mdash; it could do anything. Literally anything (at least formally speaking).</p>
+<p>The C++ standard defines an execution path according to your code. Given particular inputs, the program will always follow this execution path. Sometimes, the standard allows multiple possible execution paths for your program. This gives compilers extra freedom to optimize in various ways. When the standard allows a particular set of possible paths, this is known as <dfn>unspecified behavior</dfn>. In other cases, the standard gives absolutely no requirements about the behavior of your program, and this is known as <dfn>undefined behavior</dfn>. Undefined behavior is certainly not something you want in your code.</p>
+<aside><dfn>Implementation-defined behavior</dfn> is a subset of unspecified behavior, for which the implementation is required to document its choice of behavior.</aside>
+<p>The sequencing rules of C++, which describe how the evaluations of expressions and their subexpressions are ordered, may determine that an expression is undefined. C++11 introduced a smarter but slightly more complex approach to specifying these rules, which is still used in C++14. There’s a great <a href="http://en.cppreference.com/w/cpp/language/eval_order">overview of the rules on the cppreference.com wiki</a>.</p>
+<p>In simple terms, evaluations are ordered by a <dfn>sequenced-before</dfn> relationship. That is, evaluation of one part of an expression may be sequenced-before the evaluation of another part. Evaluations can be one of two things: <dfn>value computations</dfn>, which work out the result of an expression; and <dfn>side effects</dfn>, which are modifications of objects. When two evaluations are not sequenced-before each other, they are <dfn>unsequenced</dfn> (we cannot say which will occur first).</p>
+<p>Informally, the basic sequencing rules are as follows:</p>
+<ul>
+	<li>The value computation of an operator’s operands are sequenced before the value computation of its result &mdash; else how would we compute the result? Note, however, that the side effects of the operands are not necessarily sequenced-before.</li>
+	<li>In general, the evaluation of an operator's operands are unsequenced. For example, in <code>x + y</code>, the evaluation of <code>x</code> and <code>y</code> are unsequenced.</li>
+	<li>For <code>&&</code>, <code>||</code>, and <code>,</code>, however, evaluation of the left operand is sequenced before the right operand.</li>
+	<li>The value computation of postfix <code>++</code> and <code>--</code> is sequenced before their side effects.</li>
+	<li>The side effects of prefix <code>++</code> and <code>--</code> are sequenced before their value computation.</li>
+	<li>The value computations of the operands of any assignment operator (<code>=</code>, <code>+=</code>, <code>-=</code>, etc.) are sequenced before the side effect of the assignment, which is itself sequenced before value computation of the assignment expression.</li>
+</ul>
+<p>The rules that define when the sequenced-before relationship exists between two evaluations inherently form an acyclic directed graph structure. As an example, let’s consider the earlier line of code once again:</p>
+
+{% highlight cpp %}
+i = i++
+{% endhighlight %}
+
+<p>By applying the above sequencing rules, we can create a sequenced-before graph. For this expression, it looks like so:</p>
+<figure><img src="{{ site.media_url }}/images/sequencing-graphs/postincrement.png" alt="An annotated sequenced-before graph for i = i++."></figure>
+<p>Black nodes are value computations in general. Blue nodes are value computations that use the values of objects. Red nodes are side effects on objects. The arrows denote the sequenced-before relationship. In this way, the graph flows chronologically upwards.</p>
+<p>Notice the interesting placement of the <code>i</code> increment &mdash; nothing else is sequenced after it, so it could even occur after the assignment. Herein lies the undefined behaviour. Depending on whether the increment occurs before or after the assignment, we would get different results.</p>
+<p>To determine whether an expression might be undefined, we can simply look at its graph. Two evaluations in different branches are completely unsequenced. The standard states that we have undefined behaviour if: we have <b>two side effects on the same scalar object that are unsequenced</b>; or we have <b>a side effect on a scalar object and a value computation using the value of the same object that are unsequenced</b>. In the above graph, I have connected the problematic pair of evaluations with a dotted line &mdash; two unsequenced side effects.</p>
+<p>A subtle point to note is that the value computation of the left operand of the <code>=</code> operator does not actually use the value of <code>i</code>. This means that it’s not a problem to have it in a different branch than a side effect on the same object. The reason for this is a little out of the scope of this article, but just think about an expression like <code>x = 5</code> &mdash; do we need to know the current value of <code>x</code> to evaluate this expression? We don’t, so it’s not a value computation that <em>uses the value</em> of the object.</p>
+<aside>For those who want to read more, look up <a href="http://en.cppreference.com/w/cpp/language/value_category">value categories</a>. The left operand of <code>=</code> is an lvalue, which means that we don't care about its value.</aside>
+<p>As you can see, this gives a great way to visualize the sequencing rules as applied to a particular expression and makes it much easier to see why certain expressions might result in undefined behaviour.</p>
+<p>Let’s take a look at some more examples of both undefined and well-defined expressions:</p>
+
+<hr>
+
+{% highlight cpp %}
+i = ++i
+{% endhighlight %}
+<figure><img src="{{ site.media_url }}/images/sequencing-graphs/preincrement.png" alt="An sequenced-before graph for i = ++i."></figure>
+<p>It is interesting to see that by merely switching the postfix increment to a prefix increment, this expression has become well-defined. That’s because the increment of <code>i</code> has to occur before the value computation of the increment expression and, therefore, before the assignment to <code>i</code>.</p>
+<aside>In C++11, this was actually considered undefined, despite having only one possible result.</aside>
+
+<hr>
+
+{% highlight cpp %}
+i = i++ + i++
+{% endhighlight %}
+<figure><img src="{{ site.media_url }}/images/sequencing-graphs/complex.png" alt="An sequenced-before graph for i = i++ + i++."></figure>
+<p>This is a slightly more complex adaptation of the expression we first looked at. It seems to be quite a popular example. It has undefined behaviour for the same reasons, but also exhibits unsequenced side effects and value computations between the two increments. In the same way, <code>i++ + i++</code> alone is undefined.</p>
+
+<hr>
+
+{% highlight cpp %}
+i = v[i++]
+{% endhighlight %}
+<figure><img src="{{ site.media_url }}/images/sequencing-graphs/subscript.png" alt="An sequenced-before graph for i = v[i++]."></figure>
+<p>This one tends to be hard for many to grasp, although its problem is exactly the same as the previous examples. I suspect that most people think of <code>i++</code> as an operation that “returns the value of <code>i</code>, then increments <code>i</code>.” The problem is that the increment can happen at any point, and might happen after the assignment to <code>i</code>. The fact that we're using it as a subscript doesn't change anything.</p>
+
+<hr>
+
+{% highlight cpp %}
+i++ || i++
+{% endhighlight %}
+<figure><img src="{{ site.media_url }}/images/sequencing-graphs/logical-or.png" alt="An sequenced-before graph for i++ || i++."></figure>
+<p>This demonstrates the ability of some operators (namely <code>||</code>, <code>&&</code>, and <code>,</code>) to enforce sequencing between their operands. The standard states that every value computation and side effect associated with the left operand is sequenced before those of the right operand.</p>
+
+<hr>
+
+{% highlight cpp %}
+f(i = 1, i = 2)
+{% endhighlight %}
+<figure><img src="{{ site.media_url }}/images/sequencing-graphs/function.png" alt="An sequenced-before graph for f(i = 1, i = 2)."></figure>
+<p>Here we’re calling a function and in each argument we’re assigning a different value to <code>i</code>. The evaluations of function arguments are also unsequenced, so we cannot say what the value of <code>i</code> will be after this expression has been evaluated.</p>
+
+<hr>
+
+<p>It’s worth noting that function calls are always <dfn>indeterminately sequenced</dfn>. This means that one always occurs before the other, but we cannot say which way around. This is to prevent function calls from interleaving. However, the undefined behaviour rule only applies with unsequenced evaluations. Therefore, if you have two function calls in different branches that modify the same scalar object, you don’t have undefined behaviour &mdash; instead you have unspecified behaviour.</p>
+<p>Also remember that overloaded operators are actually treated as function calls. That is, if you want to know how <code>x + y</code> is sequenced, and <code>operator+</code> is overloaded for <code>x</code>, you need to treat the expression as <code>x.operator+(y)</code> or <code>operator+(x, y)</code> &mdash; whichever is defined.</p>
+<p>Finally, it is not always enough to look at the identifiers in expressions. Previously, we noted that an object <code>i</code> was modified in two parts of an expression. However, it’s possible to have two different identifiers, say <code>i</code> and <code>j</code>, that either refer to the same scalar object or are more complex data types that have a shared scalar object that they modify. Keep this in mind.</p>
+<p>Next time you come across a complex expression (which is hopefully not very often), you now have a great way to analyse the sequencing of evaluations and determine the possible execution paths of that expression. Perhaps this might reduce the number of questions on Stack Overflow about this topic, but if not, at least it gives a nice visual way to answer them.</p>
