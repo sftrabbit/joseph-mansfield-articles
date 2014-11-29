@@ -1,10 +1,10 @@
 ---
 layout: article
 title: Don't condition input on <code>eof()</code>
-description: "File input is often mishandled in C++ despite the existence of a simple, idiomatic pattern. Find out why conditioning on <code>eof()</code> might not do what you expect."
+description: "File input is often mishandled in C++. Find out why conditioning on <code>eof()</code> might not do what you expect, and learn the correct, idiomatic approach to validating input."
 tag: C++
 ---
-<p>New C++ programmers often learn the following incorrect pattern for reading from a file:</p>
+<p>New C++ developers often learn the following incorrect pattern for reading from a file:</p>
 
 {% highlight cpp %}
 while (!file.eof()) {
