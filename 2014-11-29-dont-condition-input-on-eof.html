@@ -1,0 +1,64 @@
+---
+layout: article
+title: Don't condition input on <code>eof()</code>
+description: "File input is often mishandled in C++ despite the existence of a simple, idiomatic pattern. Find out why conditioning on <code>eof()</code> might not do what you expect."
+tag: C++
+---
+<p>It seems that new C++ programmers often learn the following pattern for reading from a file:</p>
+
+{% highlight cpp %}
+while (!file.eof()) {
+  // Read data from file
+  // Process data
+}
+{% endhighlight %}
+
+<p>At first glance, it seems to make sense - if I haven't reached the end of the file (<a href="http://en.cppreference.com/w/cpp/io/basic_ios/eof"><code>std::basic_ios::eof</code></a>), I can keep reading from it - but this logic is wrong. The fundamental issue is simple: the <abbr title="End of File">EOF</abbr> bit not being set does not necessarily imply that reading from the file will succeed. If the condition passes, but reading fails, you'll get an iteration of the loop in which nothing is read from the file. Because of this, there are two very common symptoms:</p>
+<ul>
+	<li>There appears to be an extra blank line in the file.</li>
+	<li>The last line of the file appears to be processed twice.</li>
+</ul>
+<p>This problem raises an interesting question. If we know that we've read the last line of a file with <a href="http://en.cppreference.com/w/cpp/string/basic_string/getline"><code>std::getline</code></a>, why does the EOF bit not get set? Surely we have reached the end of the file. Why would it continue only to fail at the next attempt to read?</p>
+<p>The EOF bit is only set if you actually attempt to read anything beyond the end of the file. That is, if you were to call <a href="http://en.cppreference.com/w/cpp/io/basic_istream/get"><code>file.get()</code></a>, which extracts only a single character, reading the last character would not set the EOF bit, but the next call would. This doesn't fully answer the question, however, because some functions actually read one character beyond the data they extract. For example, <code>std::cin >> x</code>, where <code>x</code> is an <code>int</code>, discards any initial whitespace, and then will read up to and including a non-digit. The non-digit is not extracted, but it is read in order to determine that it should stop. Similarly, <code>std::getline</code> will read up to and including a newline character. These functions will also stop if they attempt to read beyond the end of the file. So the question remains - if we're reading the last line of a file with <code>std::getline</code>, why does it not attempt to read past the end of the file and therefore set the EOF bit?</p>
+<p>The answer is simple, but not immediately apparent: all lines in a text file end with a newline character - even the last line. In many text editors, this is not obvious because the last line doesn't appear to have a newline character following it, but it's there. There are <a href="http://stackoverflow.com/q/729692/150634">many reasons for this</a>, but it has unfortunate consequences for our <code>!file.eof()</code> loop. Consider the following file:</p>
+
+{% highlight text %}
+Today I pass the time reading 
+a favorite haiku, 
+saying the few words over and over.
+{% endhighlight %}
+
+<p>If we render the newline characters, it looks something like this:</p>
+
+{% highlight text %}
+Today I pass the time reading\n
+a favorite haiku,\n
+saying the few words over and over.\n
+{% endhighlight %}
+
+<p>Now, if we're iterating through this file, reading each line with <code>std::getline</code>, what happens when we read the last line? <code>std::getline</code> will read up to and including the final newline character and then return. It won't attempt to read beyond the end of the file. The EOF bit won't be set. If we are conditioned on <code>eof()</code>, we will start another iteration with nothing left to read - every attempt to do so will fail.</p>
+<p>The same is true if we're extracting formatted data with <code>&gt;&gt;</code>. The last extraction will stop at the newline character and the EOF bit will not be set. There is no more data left to extract. In this case, it often appears that the last set of data is duplicated because the objects we are extracting into retain their values from the previous iteration.</p>
+<p>Of course, these operations are not specific to files. Any kind of input stream will exhibit the same behavior. The newline character at the end of files is frequently the cause of this problem, but conditioning on <code>eof()</code> is flawed regardless. It simply cannot tell if you the following input will succeed or not. Any other I/O problems will also be ignored, since <code>eof()</code> only tells you if the EOF bit is set and not any of the other failure bits. This can lead to infinite loops.</p>
+<p>The correct and idiomatic approach to read from a stream is to condition on the success of the read itself. In this way, we attempt to extract the input and handle it appropriately if it fails. This means that you can stop at the right time and report problems to the user if necessary (if the stream data was incorrect). To loop over all lines in a file, for example, you should use the following:</p>
+
+{% highlight cpp %}
+while (std::getline(file, line)) {
+  // Process the line
+}
+{% endhighlight %}
+
+<p>Now we know for certain that the read succeeded before starting a new iteration of the loop. This also protects us against any other I/O problems that might cause it to fail. In fact, this pattern works everywhere, and should be used to validate any kind of input. For example, if you want to get some details about the user:</p>
+
+{% highlight cpp %}
+if (std::cin >> first_name &&
+    std::cin >> family_name &&
+    std::cin >> age) {
+  // Success
+} else {
+  // Failure
+}
+{% endhighlight %}
+
+<p>The <code>&&</code>s ensure that each input operation succeeds before attempting the next one and that all must succeed in order to enter the success branch.</p>
+<p>In practice, user input and data files are often organised in structured lines. In those cases, I recommend looping conditioned on <code>std::getline</code> and then parsing each line individually. Inside the loop, you can put the line into a <a href="http://en.cppreference.com/w/cpp/io/basic_stringstream"><code>std::stringstream</code></a> and extract the individual items of data from that. You can validate those extractions with an <code>if</code> statement as in the previous example.</p>
+<p>The <code>!file.eof()</code> anti-pattern is still seen often, even in C++ tutorials and other teaching materials. As we have seen, <code>eof()</code> only tells if you've already attempted to read past the end of a file, which is rarely what you really want to check for. Instead, we can easily condition on the success of the extraction, which ensures that we only continue processing if it succeeds. This pattern helps us write robust input handling for all kinds of streams and should be used even when <code>!file.eof()</code> <em>appears</em> to work.</p>
