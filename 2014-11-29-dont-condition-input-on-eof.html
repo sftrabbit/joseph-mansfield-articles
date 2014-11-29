@@ -47,7 +47,7 @@ while (std::getline(file, line)) {
 }
 {% endhighlight %}
 
-<p>Now we know for certain that the read succeeded before starting a new iteration of the loop. This also protects us against any other I/O problems that might cause it to fail. In fact, this pattern works everywhere, and should be used to validate any kind of input. For example, if you want to get some details about the user:</p>
+<p>Now we know for certain that the read succeeded before starting a new iteration of the loop. This also protects us against any other I/O problems that might cause it to fail. In fact, this pattern works everywhere, and should be used to validate any kind of input, even if you're not looping over it. For example, if you want to get some details about the user:</p>
 
 {% highlight cpp %}
 if (std::cin >> first_name &&
@@ -60,5 +60,5 @@ if (std::cin >> first_name &&
 {% endhighlight %}
 
 <p>The <code>&&</code>s ensure that each input operation succeeds before attempting the next one and that all must succeed in order to enter the success branch.</p>
-<p>In practice, user input and data files are often organised in structured lines. In those cases, I recommend looping conditioned on <code>std::getline</code> and then parsing each line individually. Inside the loop, you can put the line into a <a href="http://en.cppreference.com/w/cpp/io/basic_stringstream"><code>std::stringstream</code></a> and extract the individual items of data from that. You can validate those extractions with an <code>if</code> statement as in the previous example.</p>
+<p>In practice, user input and data files tend to require a combination of these approaches. For example, they are often organised in structured lines. in which case I recommend looping conditioned on <code>std::getline</code> and then parsing each line individually. Inside the loop, you can put the line into a <a href="http://en.cppreference.com/w/cpp/io/basic_stringstream"><code>std::stringstream</code></a> and extract the individual items of data from that. You can validate those extractions with an <code>if</code> statement as in the previous example.</p>
 <p>The <code>!file.eof()</code> anti-pattern is still seen often, even in C++ tutorials and other teaching materials. As we have seen, <code>eof()</code> only tells if you've already attempted to read past the end of a file, which is rarely what you really want to check for. Instead, we can easily condition on the success of the extraction, which ensures that we only continue processing if it succeeds. This pattern helps us write robust input handling for all kinds of streams and should be used even when <code>!file.eof()</code> <em>appears</em> to work.</p>
