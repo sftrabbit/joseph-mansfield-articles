@@ -4,7 +4,7 @@ title: The lvalue/rvalue metaphor
 description: "A simple interpretation of the mysterious value categories of C++: lvalues and rvalues."
 tag: C++
 ---
-<p>Every expression in C++ is either an lvalue or an rvalue. This distinction is what makes something like <code>5 = x;</code> invalid C++, as the expression <code>5</code> is an rvalue expression and so cannot appear on the left of an assignment. This is in fact where the terms originate: only lvalues can appear on the left of an assignment, while rvalues must appear on the right. However, this only really describes one particular case, so isn't useful for a general understanding of lvalues and rvalues.</p>
+<p>Every expression in C++ is either an lvalue or an rvalue. This distinction is what makes something like <code>5 = x;</code> invalid, as the expression <code>5</code> is an rvalue expression and so cannot appear on the left of an assignment. This is in fact where the terms originate <a href="#c++14" class="reference">[1] §3.10</a>: only lvalues can appear on the left of an assignment, while rvalues must appear on the right. However, this only really describes one particular case, so isn't useful for a general understanding of lvalues and rvalues.</p>
 <p>For beginners, these <a href="http://en.cppreference.com/w/cpp/language/value_category">value categories</a> are a mild curiosity that appear only in error messages (for the above expression, GCC tells us "lvalue required as left operand of assignment"). However, since the introduction of move semantics and rvalue references in <a href="http://en.wikipedia.org/wiki/C%2B%2B11">C++11</a>, it has become more important than ever to understand them. One could try to learn every lvalue/rvalue rule in the standard, but there is a simple interpretation that can help you understand their purpose and reason about them. Lvalues and rvalues are just metaphors:</p>
 <ul>
 	<li>Lvalues represent objects and rvalues represent values.</li>
@@ -81,7 +81,7 @@ void wrapper(T&& x)
 <section>
 	<h1>Conclusion</h1>
 
-	<p>This concludes the simple, intuitive metaphor for understanding lvalues and rvalues. By thinking of lvalues as representing objects, rvalues as representing transient values, and understanding the ways in which C++ may interpret your expressions, it becomes very simple to reason about your code.</p>
+	<p>This concludes a simple, intuitive intepretation for understanding lvalues and rvalues in which they are a metaphor for objects and values respectively. By thinking of lvalues and rvalues in this way, it becomes easier to reason about the behaviour of your code and to make the most of modern C++.</p>
 </section>
 
 <p><a id="c++14">[1] International Standard ISO/IEC 14882:2014(E) Programming Language C++</a></p>
