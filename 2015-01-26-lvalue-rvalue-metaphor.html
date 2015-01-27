@@ -1,7 +1,7 @@
 ---
 layout: article
 title: The lvalue/rvalue metaphor
-description: "A simple interpretation of the mysterious value categories of C++, where lvalues represent persistent objects and rvalues represent transient values."
+description: "A simple interpretation of the mysterious value categories of C++, where lvalues represent objects and rvalues represent values."
 tag: C++
 ---
 <p>Every expression in C++ is either an lvalue or an rvalue. This distinction is what makes something like <code>5 = x;</code> invalid, as the expression <code>5</code> is an rvalue expression and so cannot appear on the left of an assignment. This is in fact where the terms originate: only lvalues can appear on the left of an assignment, while rvalues must appear on the right <a href="#c++14" class="reference">[1] §3.10</a>. However, this only really describes one particular case, so isn't useful for a general understanding of lvalues and rvalues.</p>
@@ -52,7 +52,7 @@ std::string get_message() {
 </section>
 
 <section>
-	<h1>How do moving and forwarding work?</h1>
+	<h1>Moving and forwarding</h1>
 	
 	<p>Both <a href="http://en.cppreference.com/w/cpp/utility/move"><code>std::move</code></a> and <a href="http://en.cppreference.com/w/cpp/utility/forward"><code>std::forward</code></a> give you super powers: the ability to manipulate the value category of an expression.</p>
 	<p>A call to <code>std::move</code> is always an rvalue (value) expression. Because of this, <b><code>std::move</code> allows you to treat any expression as though it represents a value</b>. What's the purpose of this? Well, objects are persistent regions of storage that we don't expect to change when doing non-destructive operations on them. However, if we know that we don't need the object any longer, we can often use destructive yet more efficient implementations. Values are inherently transient, so treating an object like a value allows us to perform these more efficient operations. For example, by treating objects as values, we can efficiently steal their resources when copying them (which we call <dfn>moving</dfn>, rather than copying). Look up <a href="http://stackoverflow.com/q/3106110/150634">move semantics</a> to find out how to implement this for your classes.</p>
