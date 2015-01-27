@@ -4,7 +4,7 @@ title: The lvalue/rvalue metaphor
 description: "A simple interpretation of the mysterious value categories of C++, where lvalues represent persistent objects and rvalues represent transient values."
 tag: C++
 ---
-<p>Every expression in C++ is either an lvalue or an rvalue. This distinction is what makes something like <code>5 = x;</code> invalid, as the expression <code>5</code> is an rvalue expression and so cannot appear on the left of an assignment. This is in fact where the terms originate <a href="#c++14" class="reference">[1] §3.10</a>: only lvalues can appear on the left of an assignment, while rvalues must appear on the right. However, this only really describes one particular case, so isn't useful for a general understanding of lvalues and rvalues.</p>
+<p>Every expression in C++ is either an lvalue or an rvalue. This distinction is what makes something like <code>5 = x;</code> invalid, as the expression <code>5</code> is an rvalue expression and so cannot appear on the left of an assignment. This is in fact where the terms originate: only lvalues can appear on the left of an assignment, while rvalues must appear on the right <a href="#c++14" class="reference">[1] §3.10</a>. However, this only really describes one particular case, so isn't useful for a general understanding of lvalues and rvalues.</p>
 <p>For beginners, these <a href="http://en.cppreference.com/w/cpp/language/value_category">value categories</a> are a mild curiosity that appear only in error messages (for the above expression, GCC tells us "lvalue required as left operand of assignment"). However, since the introduction of move semantics and rvalue references in <a href="http://en.wikipedia.org/wiki/C%2B%2B11">C++11</a>, it has become more important than ever to understand them. One could try to learn every lvalue/rvalue rule in the standard, but there is a simple interpretation that can help you understand their purpose and reason about them. Lvalues and rvalues are just metaphors:</p>
 <ul>
 	<li>Lvalues represent objects and rvalues represent values.</li>
@@ -37,14 +37,17 @@ std::string get_message() {
 	{% endhighlight %}
 	
 	<p>Elsewhere in your code, the function call <code>get_message()</code> denotes the value of an <code>std::string</code> containing "Hello, World!", rather than a persistent object that you are going to manipulate.</p>
-	<aside><p>Technically these are two kinds of rvalue: expressions denoting truly abstract values are prvalues (pure), while expressions denoting short-lived objects are called xvalues (expiring) <a href="#c++14" class="reference">[1] §3.10</a>.</p></aside>
+	<aside>
+		<p>Technically these are two kinds of rvalue: expressions denoting truly abstract values are prvalues (pure), while expressions denoting short-lived objects are called xvalues (expiring) <a href="#c++14" class="reference">[1] §3.10</a>.</p>
+		<img src="{{ site.media_url }}/images/lvalues-rvalues.png" alt="Rvalues are split into xvalues and prvalues. Lvalues and xvalues together are known as glvalues.">
+	</aside>
 </section>
 
 <section>
 	<h1>Lvalue-to-rvalue conversion</h1>
 	
 	<p>Most operators in C++ expect rvalues (values) as their operands <a href="#c++14" class="reference">[1] §5</a>. If we want to perform addition, for example, we just need two values to add together &mdash; we don't care if they belong to objects. A notable exception is the assignment operator, which requires an lvalue (object) for its left operand <a href="#c++14" class="reference">[1] §5.17</a>. This is also logical &mdash; assignment needs an object in which to store something.</p>
-	<p>We can, however, also use lvalues where rvalues are expected &mdash; this is permitted by the implicit <em>lvalue-to-rvalue conversion</em> <a href="#c++14" class="reference">[1] §4.1</a>. Once again, this makes sense &mdash; if we provide an object where a value is expected, we can just read the value of the object. That is, <b>lvalue-to-rvalue conversion represents reading the value of an object</b>..</p>
+	<p>We can, however, also use lvalues where rvalues are expected &mdash; this is permitted by the implicit <dfn>lvalue-to-rvalue conversion</dfn> <a href="#c++14" class="reference">[1] §4.1</a>. Once again, this makes sense &mdash; if we provide an object where a value is expected, we can just read the value of the object. That is, <b>lvalue-to-rvalue conversion represents reading the value of an object</b>..</p>
 	<aside><p>Lvalue-to-rvalue conversion actually converts both lvalues and xvalues to prvalues. As we saw, an xvalue also denotes an object behind the scenes so we have to read its value too. Lvalues and xvalues are collectively known as glvalues (general).</p></aside>
 </section>
 
