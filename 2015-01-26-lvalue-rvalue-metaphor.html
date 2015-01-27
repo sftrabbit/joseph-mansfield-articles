@@ -1,7 +1,7 @@
 ---
 layout: article
 title: The lvalue/rvalue metaphor
-description: "A simple interpretation of the mysterious value categories of C++: lvalues and rvalues. Lvalues represent objects and rvalues represent values."
+description: "A simple interpretation of the mysterious value categories of C++: lvalues represent objects and rvalues represent values."
 tag: C++
 ---
 <p>Every expression in C++ is either an lvalue or an rvalue. This distinction is what makes something like <code>5 = x;</code> invalid, as the expression <code>5</code> is an rvalue expression and so cannot appear on the left of an assignment. This is in fact where the terms originate: only lvalues can appear on the left of an assignment, while rvalues must appear on the right <a href="#c++14" class="reference">[1] §3.10</a>. However, this only really describes one particular case, so isn't useful for a general understanding of lvalues and rvalues.</p>
