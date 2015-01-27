@@ -1,7 +1,7 @@
 ---
 layout: article
 title: The lvalue/rvalue metaphor
-description: "A simple interpretation of the mysterious value categories of C++: lvalues and rvalues."
+description: "A simple interpretation of the mysterious value categories of C++, where lvalues represent persistent objects and rvalues represent transient values."
 tag: C++
 ---
 <p>Every expression in C++ is either an lvalue or an rvalue. This distinction is what makes something like <code>5 = x;</code> invalid, as the expression <code>5</code> is an rvalue expression and so cannot appear on the left of an assignment. This is in fact where the terms originate <a href="#c++14" class="reference">[1] §3.10</a>: only lvalues can appear on the left of an assignment, while rvalues must appear on the right. However, this only really describes one particular case, so isn't useful for a general understanding of lvalues and rvalues.</p>
@@ -9,14 +9,16 @@ tag: C++
 <ul>
 	<li>Lvalues represent objects and rvalues represent values.</li>
 	<li>Lvalue-to-rvalue conversion represents reading the value of an object.</li>
-	<li><a href="http://en.cppreference.com/w/cpp/utility/move"><code>std::move</code></a> allows you to treat any expression as though it denotes a value.</li>
-	<li><a href="http://en.cppreference.com/w/cpp/utility/forward"><code>std::forward</code></a> allows you to preserve whether an expression denoted an object or a value.</li>
+	<li><a href="http://en.cppreference.com/w/cpp/utility/move"><code>std::move</code></a> allows you to treat any expression as though it represents a value.</li>
+	<li><a href="http://en.cppreference.com/w/cpp/utility/forward"><code>std::forward</code></a> allows you to preserve whether an expression represented an object or a value.</li>
 </ul>
 
 <section>
-	<h1>What are lvalues and rvalues?</h1>
+	<h1>Lvalues and rvalues</h1>
 
-	<p>Value categories describe <em>expressions</em>, not objects. That is, in the following code, we may describe the expression <code>x</code> as an lvalue, but not the object denoted by <code>x</code>. The expression <code>x + 5</code> and the subexpression <code>5</code> are rvalues.</p>
+	<p>Every useful C++ program revolves around the manipulation of objects, which are regions of memory created at runtime in which we store values. A simple <code>int x;</code>, for example, creates an object for storing integer values.</p>
+	<p>We also come across values that do not belong to any particular object. For example, the literal <code>5</code> represents the abstract value of 5, but is not stored in any object. Similarly, if we have two <code>int</code> objects, <code>x</code> and <code>y</code>, the expression <code>x + y</code> gives us a value representing the result of the addition &mdash; this value is also not stored in an object.</p>
+	<p>A simple interpretation of lvalues and rvalues is that <b>lvalues represent objects and rvalues represent values</b>. In the following code, <code>x</code> denotes an object, so it's an lvalue. <code>x + 5</code> denotes a value, so it's an rvalue. The subexpression <code>5</code> is also an rvalue.</p>
 	
 	{% highlight cpp %}
 void foo(int x)
@@ -25,11 +27,8 @@ void foo(int x)
 	bar(x + 5); // the argument is an rvalue expression
 }
 	{% endhighlight %}
-	
-	<p>Every useful C++ program revolves around the creation, destruction, and manipulation of objects <a href="#c++14" class="reference">[1] §1.8</a>. A simple <code>int x;</code>, for example, creates an object. These objects store values that we can read and write.</p>
-	<p>We also come across values that do not belong to any particular object. For example, the literal <code>5</code> represents the abstract value of 5, but is not stored in any object. Similarly, if we have two <code>int</code>s, <code>x</code> and <code>y</code>, the expression <code>x + y</code> gives us a value representing the result of the addition &mdash; this value is also not stored in an object.</p>
-	<p>A simple interpretation of lvalues and rvalues is that <b>lvalues represent objects and rvalues represent values</b>. <code>x</code> denotes an object, so it's an lvalue. <code>5</code> denotes a value, so it's an rvalue.</p>
-	<p>Some expressions result in the creation of a temporary object &mdash; for example, a function call that returns by value <a href="#c++14" class="reference">[1] §5.2.2</a>. Although an object does really exist here, the expression can still be thought of as just representing a value of that type. Consider this function:</p>
+
+	<p>I'm being careful here by using the word "represent". The truth is that rvalue expressions can denote objects too, but they still <em>represent</em> values. For example, some rvalue expressions result in the creation of a temporary object &mdash; such as a function call that returns by value <a href="#c++14" class="reference">[1] §5.2.2</a>. Although an object does really exist here, the expression can still be thought of as just representing a value of that type. Consider this function:</p>
 	
 	{% highlight cpp %}
 std::string get_message() {
@@ -38,23 +37,23 @@ std::string get_message() {
 	{% endhighlight %}
 	
 	<p>Elsewhere in your code, the function call <code>get_message()</code> denotes the value of an <code>std::string</code> containing "Hello, World!", rather than a persistent object that you are going to manipulate.</p>
-	<aside><p>Technically there are two kinds of rvalue here: expressions representing temporary objects are called xvalues (expiring), while expressions representing truly abstract values are called prvalues (pure) <a href="#c++14" class="reference">[1] §3.10</a>.</p></aside>
+	<aside><p>Technically these are two kinds of rvalue: expressions denoting truly abstract values are prvalues (pure), while expressions denoting short-lived objects are called xvalues (expiring) <a href="#c++14" class="reference">[1] §3.10</a>.</p></aside>
 </section>
 
 <section>
-	<h1>What is lvalue-to-rvalue conversion?</h1>
+	<h1>Lvalue-to-rvalue conversion</h1>
 	
 	<p>Most operators in C++ expect rvalues (values) as their operands <a href="#c++14" class="reference">[1] §5</a>. If we want to perform addition, for example, we just need two values to add together &mdash; we don't care if they belong to objects. A notable exception is the assignment operator, which requires an lvalue (object) for its left operand <a href="#c++14" class="reference">[1] §5.17</a>. This is also logical &mdash; assignment needs an object in which to store something.</p>
-	<p>We can, however, also use lvalues where rvalues are expected &mdash; this is permitted by the implicit <em>lvalue-to-rvalue conversion</em> <a href="#c++14" class="reference">[1] §4.1</a>. Once again, this makes sense &mdash; if we provide an object where a value is expected, we can just read the value of the object. That is, <b>lvalue-to-rvalue conversion represents reading the value of an object</b>. If this conversion is performed while the value of the object is indeterminate, you get undefined behavior.</p>
-	<aside><p>In truth, lvalue-to-rvalue conversion actually converts both lvalues and xvalues into prvalues &mdash; this is because xvalues are also objects behind the scenes, albeit temporary, and so also require reading the object's value.</p></aside>
+	<p>We can, however, also use lvalues where rvalues are expected &mdash; this is permitted by the implicit <em>lvalue-to-rvalue conversion</em> <a href="#c++14" class="reference">[1] §4.1</a>. Once again, this makes sense &mdash; if we provide an object where a value is expected, we can just read the value of the object. That is, <b>lvalue-to-rvalue conversion represents reading the value of an object</b>..</p>
+	<aside><p>Lvalue-to-rvalue conversion actually converts both lvalues and xvalues to prvalues. As we saw, an xvalue also denotes an object behind the scenes so we have to read its value too. Lvalues and xvalues are collectively known as glvalues (general).</p></aside>
 </section>
 
 <section>
 	<h1>How do moving and forwarding work?</h1>
 	
 	<p>Both <a href="http://en.cppreference.com/w/cpp/utility/move"><code>std::move</code></a> and <a href="http://en.cppreference.com/w/cpp/utility/forward"><code>std::forward</code></a> give you super powers: the ability to manipulate the value category of an expression.</p>
-	<p>A call to <code>std::move</code> is always an rvalue (value). Because of this, <b><code>std::move</code> allows you to treat any expression as though it denotes a value</b>. What's the purpose of this? While we expect that objects should not typically be invalidated when copied (we probably need them later), we don't need to care about invalidating a temporary value. By treating objects as values, we can efficiently copy them by stealing their resources (which we call moving, rather than copying). Look up <a href="http://stackoverflow.com/q/3106110/150634">move semantics</a> to find out how to implement this for your classes.</p>
-	<p>In some cases, C++ will silently treat your lvalues as rvalues <a href="#c++14" class="reference">[1] §12.8</a> (as though you had <code>std::move</code>d them). For example, when returning a local object from a function, the compiler knows that the object is no longer required and so can treat the returned expression as though it just represents a value:</p>
+	<p>A call to <code>std::move</code> is always an rvalue (value) expression. Because of this, <b><code>std::move</code> allows you to treat any expression as though it represents a value</b>. What's the purpose of this? Well, objects are persistent regions of storage that we don't expect to change when doing non-destructive operations on them. However, if we know that we don't need the object any longer, we can often use destructive yet more efficient implementations. Values are inherently transient, so treating an object like a value allows us to perform these more efficient operations. For example, by treating objects as values, we can efficiently steal their resources when copying them (which we call <dfn>moving</dfn>, rather than copying). Look up <a href="http://stackoverflow.com/q/3106110/150634">move semantics</a> to find out how to implement this for your classes.</p>
+	<p>In some cases, C++ will silently do this, treating your lvalues as rvalues <a href="#c++14" class="reference">[1] §12.8</a> (as though you had <code>std::move</code>d them). For example, when returning a local object from a function, the compiler knows that the object is no longer required and so can treat the returned expression as though it just represents a transient value:</p>
 	
 	{% highlight cpp %}
 widget foo()
@@ -75,13 +74,13 @@ void wrapper(T&& x)
 }
 	{% endhighlight %}
 	
-	<p>When the argument passed to <code>wrapper</code> is an lvalue expression of type <code>widget</code>, <code>x</code> is deduced to be of type <code>widget&</code>. When it is an rvalue expression, <code>x</code> is of type <code>widget&&</code>. In both cases, the expression <code>x</code> will just be an lvalue. However, the <code>std::forward</code> function is cleverly designed so that <code>std::forward<T>(x)</code> is an lvalue in the first case and an rvalue in the second case. Therefore, <b><code>std::forward</code> allows you to preserve whether an expression denoted an object or a value</b>.</p>
+	<p>When the argument passed to <code>wrapper</code> is an lvalue expression of type <code>widget</code>, <code>x</code> is deduced to be of type <code>widget&</code>. When it is an rvalue expression, <code>x</code> is of type <code>widget&&</code>. In both cases, the expression <code>x</code> will just be an lvalue. However, the <code>std::forward</code> function is cleverly designed so that <code>std::forward<T>(x)</code> is an lvalue in the first case and an rvalue in the second case. Therefore, <b><code>std::forward</code> allows you to preserve whether an expression represented an object or a value</b>.</p>
 </section>
 
 <section>
 	<h1>Conclusion</h1>
 
-	<p>This concludes a simple, intuitive intepretation for understanding lvalues and rvalues in which they are a metaphor for objects and values respectively. By thinking of lvalues and rvalues in this way, it becomes easier to reason about the behaviour of your code and to make the most of modern C++.</p>
+	<p>This concludes a simple, intuitive intepretation for understanding lvalues and rvalues in which they are a metaphor for objects and values respectively. By thinking of lvalues and rvalues in this way, it becomes easier to reason about the behavior of your code and to make the most of modern C++.</p>
 </section>
 
 <p><a id="c++14">[1] International Standard ISO/IEC 14882:2014(E) Programming Language C++</a></p>
