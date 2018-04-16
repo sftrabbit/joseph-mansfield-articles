@@ -1,5 +1,5 @@
 ---
-layout: article
+layout: default
 title: A tour of the C++ standard
 description: A structural overview of the ISO C++ standard, serving as an introduction to the document for new C++ programmers.
 tag: C++
@@ -42,7 +42,7 @@ void foo() // declaration (a function definition)
 {
 	if (...) { ... } // statement
 	int z = 5; // a statement which is a declaration
-	x = z; // a statement which is an expression 
+	x = z; // a statement which is an expression
 }
 {% endhighlight %}
 	<p>The difference between a declaration (§7) and a declarator (§8) may not be immediately clear - the terminology certainly doesn't help. Each declaration has at least one <em>declarator</em>. The declaration <code>int x;</code> has one declarator, while <code>int x, y;</code> has two. That is, each declarator introduces an entity to your program. You may have seen something like <code>int* p1, p2;</code> and found out that only <code>p1</code> is a pointer, while <code>p2</code> is a plain <code>int</code>. That's because the <code>*</code> character is part of the declarator of <code>p1</code>. If you wanted both to be pointers, you'd need <code>int *p1, *p2;</code>. In fact, in a more complex variable declaration like <code>const short& (*f)(int, char);</code>, only <code>const short</code> belongs to the entire declaration. The rest belongs to the declarator of <code>f</code>.</p>

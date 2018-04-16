@@ -1,5 +1,5 @@
 ---
-layout: article
+layout: default
 title: Don't condition input on <code>eof()</code>
 description: "File input is often mishandled in C++. Find out why conditioning on <code>eof()</code> might not do what you expect, and learn the correct, idiomatic approach to validating input."
 tag: C++
@@ -23,8 +23,8 @@ while (!file.eof()) {
 <p>The answer is simple, but not immediately apparent: in general, all lines in a text file should end with a newline character &mdash; even the last line (in fact, the POSIX standards require it). In most text editors, this is not obvious because the final newline isn't visible in any way, but it's there (Sublime Text is one exception). There are <a href="http://stackoverflow.com/q/729692/150634">many reasons to have this newline character</a>, but it has unfortunate consequences for our <code>!file.eof()</code> loop. Consider the following file:</p>
 
 {% highlight text %}
-Today I pass the time reading 
-a favorite haiku, 
+Today I pass the time reading
+a favorite haiku,
 saying the few words over and over.
 {% endhighlight %}
 

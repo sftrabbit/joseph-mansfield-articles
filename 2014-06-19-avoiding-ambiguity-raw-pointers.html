@@ -1,5 +1,5 @@
 ---
-layout: article
+layout: default
 title: Ambiguous raw pointers
 description: A look at the properties of raw pointers, an abundant source of bugs and confusion for C++ programmers, that make them unsuitable for modern code.
 tag: C++
@@ -106,7 +106,7 @@ void foo(std::string str);
 {% highlight cpp %}
 void foo(char const* str);
 {% endhighlight %}
-	<p>Additionally, if you are dealing with low-level memory manipulation, then you probably do want to use raw pointers. In this case, they genuinely represent your intentions accurately.</p> 
+	<p>Additionally, if you are dealing with low-level memory manipulation, then you probably do want to use raw pointers. In this case, they genuinely represent your intentions accurately.</p>
 </section>
 <section>
 	<h1>Conclusion</h1>

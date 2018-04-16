@@ -1,5 +1,5 @@
 ---
-layout: article
+layout: default
 title: Marking as deprecated in C++14
 description: The upcoming C++14 standard introduces an attribute for marking declarations as deprecated, useful for discouraging any use of the declared entity.
 tag: C++
@@ -20,7 +20,7 @@ int main() {
 
 <p>Compiled with the latest build of <a href="http://clang.llvm.org/">clang</a>, this gives the following warning:</p>
 
-{% highlight clang %}
+{% highlight cpp %}
 warning: 'foo' is deprecated [-Wdeprecated-declarations]
         foo();
         ^
@@ -38,7 +38,7 @@ void foo() {}
 
 <p>This gives the following warning instead:</p>
 
-{% highlight clang %}
+{% highlight cpp %}
 warning: 'foo' is deprecated: use bar instead [-Wdeprecated-declarations]
         foo();
         ^
