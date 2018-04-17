@@ -20,21 +20,21 @@ tag: C++
 	<p>We also come across values that do not belong to any particular object. For example, the literal <code>5</code> represents the abstract value of 5, but is not stored in any object. Similarly, if we have two <code>int</code> objects, <code>x</code> and <code>y</code>, the expression <code>x + y</code> gives us a value representing the result of the addition &mdash; this value is also not stored in an object.</p>
 	<p>A simple interpretation of lvalues and rvalues is that <b>lvalues represent objects and rvalues represent values</b>. In the following code, <code>x</code> denotes an object, so it's an lvalue. <code>x + 5</code> denotes a value, so it's an rvalue. The subexpression <code>5</code> is also an rvalue.</p>
 
-	{% highlight cpp %}
+{% highlight cpp %}
 void foo(int x)
 {
 	bar(x); // the argument is an lvalue expression
 	bar(x + 5); // the argument is an rvalue expression
 }
-	{% endhighlight %}
+{% endhighlight %}
 
 	<p>I'm being careful here by using the word "represent". The truth is that rvalue expressions can denote objects too, but they still <em>represent</em> values. For example, some rvalue expressions result in the creation of a temporary object &mdash; such as a function call that returns by value <a href="#c++14" class="reference">[1] §5.2.2</a>. Although an object does really exist here, the expression can still be thought of as just representing a value of that type. Consider this function:</p>
 
-	{% highlight cpp %}
+{% highlight cpp %}
 std::string get_message() {
 	return "Hello, World!";
 }
-	{% endhighlight %}
+{% endhighlight %}
 
 	<p>Elsewhere in your code, the function call <code>get_message()</code> denotes the value of an <code>std::string</code> containing "Hello, World!", rather than a persistent object that you are going to manipulate.</p>
 	<aside>
@@ -58,24 +58,24 @@ std::string get_message() {
 	<p>A call to <code>std::move</code> is always an rvalue (value) expression. Because of this, <b><code>std::move</code> allows you to treat any expression as though it represents a value</b>. What's the purpose of this? Well, objects are persistent regions of storage that we don't expect to change when doing non-destructive operations on them. However, if we know that we don't need the object any longer, we can often use destructive yet more efficient implementations. Values are inherently transient, so treating an object like a value allows us to perform these more efficient operations. For example, by treating objects as values, we can efficiently steal their resources when copying them (which we call <dfn>moving</dfn>, rather than copying). Look up <a href="http://stackoverflow.com/q/3106110/150634">move semantics</a> to find out how to implement this for your classes.</p>
 	<p>In some cases, C++ will silently do this, treating your lvalues as rvalues <a href="#c++14" class="reference">[1] §12.8</a> (as though you had <code>std::move</code>d them). For example, when returning a local object from a function, the compiler knows that the object is no longer required and so can treat the returned expression as though it just represents a transient value:</p>
 
-	{% highlight cpp %}
+{% highlight cpp %}
 widget foo()
 {
 	widget w;
 	// ...
 	return w; // the expression w is an lvalue, but is treated as an rvalue
 }
-	{% endhighlight %}
+{% endhighlight %}
 
 	<p><code>std::forward</code> relies on a neat little trick involving type deduction and reference collapsing. Consider the following example:</p>
 
-	{% highlight cpp %}
+{% highlight cpp %}
 template<class T>
 void wrapper(T&& x)
 {
 	foo(std::forward<T>(x));
 }
-	{% endhighlight %}
+{% endhighlight %}
 
 	<p>When the argument passed to <code>wrapper</code> is an lvalue expression of type <code>widget</code>, <code>x</code> is deduced to be of type <code>widget&</code>. When it is an rvalue expression, <code>x</code> is of type <code>widget&&</code>. In both cases, the expression <code>x</code> will just be an lvalue. However, the <code>std::forward</code> function is cleverly designed so that <code>std::forward<T>(x)</code> is an lvalue in the first case and an rvalue in the second case. Therefore, <b><code>std::forward</code> allows you to preserve whether an expression represented an object or a value</b>.</p>
 </section>
